@@ -1,0 +1,73 @@
+{
+  "name": "ingilizce-ogretmeni",
+  "version": "0.1.0",
+  "description": "Ingilizce bilgi seviyesine gore (A1-B2+) gercek Ingilizce ogreten sesli/yazili AI ogretmen - Aven",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win --x64",
+    "build:linux": "electron-builder --linux --x64",
+    "release:win": "electron-builder --win --x64 --publish always",
+    "release:linux": "electron-builder --linux --x64 --publish always"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^26.15.3",
+    "nsis": "^0.0.0"
+  },
+  "build": {
+    "appId": "com.semih.ingilizceogretmeni",
+    "productName": "Ingilizce Ogretmeni Aven",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "src/**/*",
+      "piper/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "language": "1055"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "semihkayags9-crypto",
+      "repo": "ingilizce-ogretmeni"
+    }
+  },
+  "dependencies": {
+    "@capacitor-community/text-to-speech": "^8.0.2",
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/filesystem": "^8.1.3",
+    "adm-zip": "^0.6.0",
+    "electron-updater": "^6.8.9"
+  },
+  "allowScripts": {
+    "electron@31.7.7": true
+  }
+}

@@ -1,0 +1,14 @@
+# API anahtarlari - ASLA paylasilmamali
+.env
+
+# Bagimliliklar
+node_modules/
+
+# Derleme ciktilari
+dist/
+
+# Piper ikili dosyalari (buyuk, ayrica indirilir)
+piper/piper
+piper/piper.exe
+piper/models/*.onnx
+piper/models/*.onnx.json

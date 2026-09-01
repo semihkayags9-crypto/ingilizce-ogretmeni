@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>İngilizce Öğretmeni Aven</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: #f4f7fb;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+  /* Sol panel: seviye + ders modülleri */
+  #lessonArea {
+    flex: 2;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 2px solid #dbe3ee;
+    background: #f4f7fb;
+    overflow-y: auto;
+  }
+  #levelBar {
+    padding: 14px 16px;
+    background: #eef2f9;
+    border-bottom: 1px solid #dbe3ee;
+  }
+  #levelBar h2 { margin: 0 0 10px; font-size: 17px; color: #23344b; }
+  #levelSelect {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #b8c5d4;
+    font-size: 15px;
+    background: #fff;
+  }
+  #moduleBar {
+    padding: 12px 16px;
+    background: #fff;
+    border-bottom: 1px solid #dbe3ee;
+  }
+  #moduleBar h3 { margin: 0 0 10px; font-size: 15px; color: #445; }
+  #moduleGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+  }
+  .module-btn {
+    padding: 12px 10px;
+    border: 1px solid #ccd;
+    border-radius: 10px;
+    background: #f8fafd;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: center;
+    transition: all .15s;
+  }
+  .module-btn:hover { background: #e8f0ff; border-color: #3f6fd1; }
+  .module-btn.active { background: #3f6fd1; color: #fff; border-color: #3f6fd1; }
+  #lessonContent {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+  }
+  #lessonTitle { margin: 0 0 6px; font-size: 18px; color: #23344b; }
+  #lessonDesc { margin: 0 0 14px; color: #566579; font-size: 14px; line-height: 1.5; }
+  #lessonBody { font-size: 15px; line-height: 1.6; color: #24344c; }
+  .vocab-card {
+    background: #fff;
+    border: 1px solid #dbe3ee;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .vocab-word { font-size: 18px; font-weight: 700; color: #1a4fbf; }
+  .vocab-tr { color: #566579; font-size: 14px; margin-top: 2px; }
+  .vocab-example { color: #1a7a3c; font-size: 14px; margin-top: 4px; font-style: italic; }
+  .grammar-box {
+    background: #fff;
+    border-left: 4px solid #3f6fd1;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .grammar-rule { font-weight: 600; color: #23344b; margin-bottom: 4px; }
+  .grammar-example { color: #1a7a3c; font-size: 14px; }
+  .exercise-box {
+    background: #fff8e6;
+    border: 1px solid #f0d98a;
+    border-radius: 10px;
+    padding: 14px;
+    margin-top: 14px;
+  }
+  .exercise-box h4 { margin: 0 0 8px; color: #8a6d1a; }
+  .exercise-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccd;
+    border-radius: 8px;
+    font-size: 15px;
+    margin-top: 8px;
+  }
+  .exercise-btn {
+    margin-top: 8px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #3f6fd1;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .exercise-feedback { margin-top: 8px; font-size: 14px; font-weight: 600; }
+  .exercise-feedback.correct { color: #1a7a3c; }
+  .exercise-feedback.wrong { color: #c0392b; }
+  .speak-btn {
+    margin-top: 8px;
+    padding: 8px 14px;
+    border: 1px solid #3f6fd1;
+    border-radius: 8px;
+    background: #fff;
+    color: #3f6fd1;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .speak-btn:hover { background: #e8f0ff; }
+
+  /* Sağ panel: sohbet */
+  #chatPanel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    min-width: 320px;
+  }
+  #chatHeader {
+    padding: 14px;
+    background: #3f6fd1;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  #apiKeyBtn, #voiceLangBtn {
+    border: 1px solid rgba(255,255,255,0.7);
+    border-radius: 7px;
+    padding: 6px 9px;
+    color: white;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  #showRobotBtn {
+    display: none;
+    border: 1px solid rgba(255,255,255,0.7);
+    border-radius: 7px;
+    padding: 6px 9px;
+    color: white;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  #showRobotBtn.visible { display: inline-block; }
+  #teacherStage {
+    position: relative;
+    min-height: 240px;
+    padding: 8px 34px 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #e9f1ff, #f8fbff);
+    border-bottom: 1px solid #d7e3f4;
+  }
+  #teacherStage[hidden] { display: none; }
+  #robotWrap {
+    flex: 0 0 200px;
+    height: 210px;
+    border-radius: 18px;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 24%, #ffffff, #c9dbf5 70%);
+    box-shadow: 0 5px 14px rgba(44, 83, 135, .2);
+  }
+  #avenRobot { width: 100%; height: 100%; }
+  #teacherStage.speaking #robotWrap { animation: avenTalk .65s ease-in-out infinite alternate; }
+  @keyframes avenTalk { from { transform: translateY(0) scale(1); } to { transform: translateY(-4px) scale(1.025); } }
+  #teacherBubble {
+    position: relative;
+    flex: 1;
+    align-self: center;
+    padding: 12px 14px;
+    border-radius: 14px;
+    color: #24344c;
+    background: white;
+    box-shadow: 0 3px 12px rgba(39, 72, 112, .12);
+    line-height: 1.4;
+    font-size: 14px;
+  }
+  #teacherBubble::before {
+    content: '';
+    position: absolute;
+    left: -9px;
+    top: 50%;
+    width: 17px;
+    height: 17px;
+    background: white;
+    transform: translateY(-50%) rotate(45deg);
+  }
+  #teacherName { display: block; color: #3f6fd1; font-weight: 700; margin-bottom: 4px; }
+  #teacherSpeech { position: relative; margin: 0; }
+  #hideRobotBtn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    color: #52657e;
+    background: #fff;
+    cursor: pointer;
+    font-size: 17px;
+  }
+  #chatLog {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+  }
+  .msg { margin-bottom: 10px; line-height: 1.4; }
+  .msg.user { text-align: right; color: #1a4fbf; }
+  .msg.ai { text-align: left; color: #1a7a3c; }
+  #chatInputBar {
+    display: flex;
+    padding: 10px;
+    gap: 8px;
+    border-top: 1px solid #eee;
+  }
+  #chatInput {
+    flex: 1;
+    padding: 10px;
+    font-size: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+  #chatInputBar button {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    background: #3f6fd1;
+    color: white;
+    cursor: pointer;
+    font-size: 15px;
+  }
+  #micBtn { background: #e0546a !important; }
+  #micBtn.listening { background: #ff2244 !important; }
+  #apiKeyDialog {
+    border: none;
+    border-radius: 12px;
+    width: min(420px, calc(100vw - 36px));
+    padding: 0;
+    box-shadow: 0 12px 36px rgba(0,0,0,.28);
+  }
+  #apiKeyDialog::backdrop { background: rgba(19, 37, 61, .45); }
+  .dialogContent { padding: 22px; }
+  .dialogContent h2 { margin: 0 0 8px; font-size: 20px; color: #23344b; }
+  .dialogContent p { color: #566579; line-height: 1.45; margin: 0 0 14px; }
+  #apiKeyInput { box-sizing: border-box; width: 100%; padding: 11px; border: 1px solid #b8c5d4; border-radius: 7px; font-size: 14px; }
+  #apiKeyStatus { min-height: 20px; margin: 10px 0 0; font-size: 13px; color: #b22d3a; }
+  .dialogActions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+  .dialogActions button { border: none; border-radius: 7px; padding: 9px 13px; cursor: pointer; font-size: 14px; }
+  #saveApiKeyBtn { background: #3f6fd1; color: white; }
+
+  /* ===== MOBİL UYUM (telefon ekranı) ===== */
+  #mobileTabs { display: none; }
+  @media (max-width: 768px) {
+    body {
+      flex-direction: column;
+      height: 100dvh;
+      overflow: hidden;
+    }
+    #mobileTabs {
+      display: flex;
+      flex: 0 0 auto;
+      background: #2c3e50;
+      border-bottom: 2px solid #1a2733;
+      z-index: 100;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 13px 8px;
+      border: none;
+      background: transparent;
+      color: #aab8c8;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active {
+      color: #fff;
+      background: #34495e;
+      border-bottom-color: #4fc3f7;
+    }
+    #lessonArea {
+      flex: 1;
+      border-right: none;
+      border-bottom: 2px solid #dbe3ee;
+      overflow-y: auto;
+      display: none;
+    }
+    #lessonArea.tab-active { display: block; }
+    #chatPanel {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      display: none;
+    }
+    #chatPanel.tab-active { display: flex; }
+    #levelBar { padding: 10px 12px; }
+    #levelBar h2 { font-size: 15px; margin-bottom: 8px; }
+    #moduleBar { padding: 10px 12px; }
+    #moduleGrid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; }
+    .module-btn { padding: 10px 8px; font-size: 13px; }
+    #teacherStage { min-height: 150px; }
+    #robotWrap { flex: 0 0 120px; height: 130px; }
+    #chatHeader { flex-wrap: wrap; gap: 6px; }
+    #chatHeader button { padding: 6px 8px; font-size: 12px; }
+    #chatInputBar { padding: 8px; }
+    #chatInput { font-size: 15px; }
+    #micBtn { font-size: 13px; padding: 10px 12px; }
+    .msg { font-size: 14px; }
+    #lessonBody { font-size: 14px; }
+    .exercise-box { padding: 10px; }
+    .exercise-input { font-size: 14px; }
+    #teacherBubble { font-size: 13px; }
+    .dialog { width: min(92vw, 420px); }
+  }
+</style>
+</head>
+<body>
+
+  <div id="mobileTabs">
+    <button class="tab-btn active" data-tab="lessonArea" id="tabLessons">📚 Dersler</button>
+    <button class="tab-btn" data-tab="chatPanel" id="tabChat">💬 Sohbet</button>
+  </div>
+
+  <div id="lessonArea" class="tab-active">
+    <div id="levelBar">
+      <h2>📚 İngilizce Seviyen</h2>
+      <select id="levelSelect">
+        <option value="A1" id="optA1">A1 — Başlangıç</option>
+        <option value="A2" id="optA2">A2 — Temel</option>
+        <option value="B1" id="optB1">B1 — Orta</option>
+        <option value="B2" id="optB2">B2 — Orta-Üstü</option>
+        <option value="C1" id="optC1">C1 — İleri</option>
+      </select>
+    </div>
+    <div id="moduleBar">
+      <h3 id="moduleBarTitle">📖 Ders Modülleri</h3>
+      <div id="moduleGrid">
+        <button class="module-btn active" data-module="vocab" id="modVocab">🔤 Kelime</button>
+        <button class="module-btn" data-module="grammar" id="modGrammar">📐 Gramer</button>
+        <button class="module-btn" data-module="sentences" id="modSentences">✍️ Cümle Kurma</button>
+        <button class="module-btn" data-module="speaking" id="modSpeaking">🎤 Konuşma</button>
+        <button class="module-btn" data-module="listening" id="modListening">👂 Dinleme</button>
+      </div>
+    </div>
+    <div id="lessonContent">
+      <h2 id="lessonTitle"></h2>
+      <p id="lessonDesc"></p>
+      <div id="lessonBody"></div>
+    </div>
+  </div>
+
+  <div id="chatPanel">
+    <div id="chatHeader"><span id="chatHeaderTitle">🧑‍🏫 İngilizce Öğretmeni Aven</span><span><button id="voiceLangBtn" type="button">🌐 TR</button><button id="showRobotBtn" type="button">🤖 Aven’i Göster</button><button id="apiKeyBtn" type="button">⚙ API Anahtarı</button><button id="voiceSetBtn" type="button">🔊 Ses</button></span></div>
+    <section id="teacherStage" aria-label="Aven öğretmen">
+      <button id="hideRobotBtn" type="button" title="Aven’i gizle" aria-label="Aven’i gizle">×</button>
+      <div id="robotWrap"><model-viewer id="avenRobot" src="assets/aven-robot.glb" alt="Aven öğretmen robotu" camera-controls shadow-intensity="1" interaction-prompt="none"></model-viewer></div>
+      <div id="teacherBubble"><span id="teacherName">Aven</span><p id="teacherSpeech">Merhaba! Ben Aven, İngilizce öğretmenin. Hangi seviyedesin?</p></div>
+    </section>
+    <div id="chatLog"></div>
+    <div id="chatInputBar">
+      <button id="micBtn" title="Aven ile sesli konuşmayı başlat">🎤 Konuş</button>
+      <input id="chatInput" type="text" placeholder="İngilizce ya da Türkçe yaz..." />
+      <button id="sendBtn">Gönder</button>
+    </div>
+  </div>
+
+  <dialog id="apiKeyDialog" aria-labelledby="apiKeyTitle">
+    <form class="dialogContent" id="apiKeyForm">
+      <h2 id="apiKeyTitle">Groq API Anahtarı</h2>
+      <p id="apiKeyDesc">Anahtar sadece bu bilgisayardaki <code>.env</code> dosyasına kaydedilir. Anahtarını kimseyle paylaşma.</p>
+      <label for="apiKeyInput" id="apiKeyInputLabel">API anahtarı</label>
+      <input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false" placeholder="gsk_..." required />
+      <div id="apiKeyStatus" role="status"></div>
+      <div class="dialogActions">
+        <button id="cancelApiKeyBtn" type="button">Vazgeç</button>
+        <button id="saveApiKeyBtn" type="submit">Kaydet</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="capacitor.js"></script>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <script src="lessons-data.js"></script>
+  <script src="lessons-advanced.js"></script>
+  <script src="renderer.js"></script>
+  <script type="module" src="tts-plugin/index.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Ingilizce Ogretmeni Aven</string>
+    <string name="title_activity_main">Ingilizce Ogretmeni Aven</string>
+    <string name="package_name">com.aven.ingilizce</string>
+    <string name="custom_url_scheme">com.aven.ingilizce</string>
+</resources>
