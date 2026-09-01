@@ -24,21 +24,19 @@ if (!window.ogretmenAPI) {
       const useLang = lang || voiceLanguage;
       // Önce Capacitor native TTS (Android'de güvenilir), yoksa Web Speech
       const CTTS = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.TextToSpeech;
+      const doWebSpeak = () => { try { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = useLang; u.rate = rate; u.pitch = pitch; window.speechSynthesis.speak(u); } } catch (e) { } };
       if (CTTS && CTTS.speak) {
         try {
-          CTTS.speak({ text: text, lang: useLang, rate: rate, pitch: pitch, volume: 1.0 });
+          const ret = CTTS.speak({ text: text, lang: useLang, rate: rate, pitch: pitch, volume: 1.0 });
+          // CTTS.speak Promise donduruyorsa reject olursa web fallback'e dus
+          if (ret && typeof ret.then === 'function') {
+            ret.then(() => {}).catch(() => { doWebSpeak(); });
+            return;
+          }
           return;
-        } catch (e) {}
+        } catch (e) { doWebSpeak(); }
       }
-      try {
-        if (window.speechSynthesis) {
-          window.speechSynthesis.cancel();
-          const u = new SpeechSynthesisUtterance(text);
-          u.lang = useLang;
-          u.rate = rate; u.pitch = pitch;
-          window.speechSynthesis.speak(u);
-        }
-      } catch (e) { /* yoksay */ }
+      doWebSpeak();
     },
     async askAI(text, lang, contextNote, history) {
       const key = getKey();
