@@ -22,28 +22,43 @@ if (!window.ogretmenAPI) {
       const rate = parseFloat(localStorage.getItem('aven-rate')) || 1.05;
       const pitch = parseFloat(localStorage.getItem('aven-pitch')) || 1.0;
       const useLang = lang || voiceLanguage;
-      // Önce Capacitor native TTS (Android'de güvenilir), yoksa Web Speech
-      const CTTS = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.TextToSpeech;
-      const doWebSpeak = () => { try { if (window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = useLang; u.rate = rate; u.pitch = pitch; window.speechSynthesis.speak(u); } } catch (e) { } };
-      if (CTTS && CTTS.speak) {
+      const doWebSpeak = () => {
         try {
-          const ret = CTTS.speak({ text: text, lang: useLang, rate: rate, pitch: pitch, volume: 1.0 });
-          // CTTS.speak Promise donduruyorsa reject olursa web fallback'e dus
-          if (ret && typeof ret.then === 'function') {
-            ret.then(() => {}).catch(() => { doWebSpeak(); });
-            return;
+          if (!window.speechSynthesis) return;
+          const synth = window.speechSynthesis;
+          synth.cancel();
+          // İngilizce örnekler genelde tırnak içinde gelir -> onları en-US ile oku,
+          // kalan açıklamayı ana dille (tr-TR) oku. Böylece İngilizce kelimeler
+          // Türkçe telaffuzla okunmaz, konuşma akıcı olur.
+          const parts = [];
+          const re = /"([^"]*)"|'([^']*)'|“([^”]*)”/g;
+          let last = 0, m;
+          while ((m = re.exec(text)) !== null) {
+            if (m.index > last) parts.push({ t: text.slice(last, m.index), lang: useLang });
+            const q = m[1] ?? m[2] ?? m[3];
+            if (q && q.trim()) parts.push({ t: q, lang: 'en-US' });
+            last = re.lastIndex;
           }
-          return;
-        } catch (e) { doWebSpeak(); }
-      }
+          if (last < text.length) parts.push({ t: text.slice(last), lang: useLang });
+          if (parts.length === 0) parts.push({ t: text, lang: useLang });
+          for (const p of parts) {
+            if (!p.t.trim()) continue;
+            const u = new SpeechSynthesisUtterance(p.t);
+            u.lang = p.lang; u.rate = rate; u.pitch = pitch;
+            synth.speak(u);
+          }
+        } catch (e) { }
+      };
+      // Web Speech her ortamda (tarayıcı + Android WebView + Capacitor) çalışır.
+      // Capacitor native plugin'e güvenmek yerine doğrudan speechSynthesis kullan.
       doWebSpeak();
     },
     async askAI(text, lang, contextNote, history) {
       const key = getKey();
       if (!key) return 'API anahtarı bulunamadı. Sağ üstteki ⚙ düğmesinden Groq API anahtarını gir.';
       const system = (lang === 'tr'
-        ? 'Sen Aven, 8 yaş grubuna İngilizce öğreten sabırlı bir öğretmensin. Türkçe açıkla, İngilizce örnek ver.'
-        : 'You are Aven, a patient English teacher for kids. Explain in simple English, give examples.')
+        ? 'Sen Aven, 8 yaş grubuna İngilizce öğreten sabırlı bir öğretmensin. Türkçe açıkla, İngilizce örnek ver. İngilizce kelime ve örnek cümleleri HER ZAMAN çift tırnak içinde ver: "apple", "Hello, how are you?" gibi. SADECE düz, akıcı ve samimi Türkçe/İngilizce metinle konuş. Asla markdown (**, *, #, _, ```, listeler), token sayısı, API adı, model adı, kod parçası ya da teknik bilgi yazma. Kısa ve net cümleler kur.'
+        : 'You are Aven, a patient English teacher for kids. Explain in simple English, give examples. ALWAYS put English words and example sentences inside double quotes, like "apple", "Hello, how are you?". Speak ONLY in clean, fluent, friendly plain text. Never use markdown (**, *, #, _, ```, lists), token counts, API names, model names, code snippets, or any technical info. Keep sentences short and clear.')
         + (contextNote ? '\n\n' + contextNote : '');
       const msgs = [{ role: 'system', content: system }];
       // Geçmiş mesajları ekle (bağlam kayması olmasın)
@@ -396,6 +411,26 @@ function renderLesson() {
 // ---------------------------------------------------------------
 // 4. Sohbet
 // ---------------------------------------------------------------
+// AI cevabindaki markdown/kalinti karakterleri temizle -> ari, dogal metin
+function cleanAiText(raw) {
+  if (!raw) return '';
+  let t = String(raw);
+  t = t.replace(/```[\s\S]*?```/g, ' ');       // kod bloklari
+  t = t.replace(/`([^`]+)`/g, '$1');            // satir ici kod
+  t = t.replace(/\*\*\*([^*]+)\*\*\*/g, '$1');  // ***bold***
+  t = t.replace(/\*\*([^*]+)\*\*/g, '$1');      // **bold**
+  t = t.replace(/\*([^*]+)\*/g, '$1');          // *italic*
+  t = t.replace(/__([^_]+)__/g, '$1');          // __text__
+  t = t.replace(/_([^_]+)_/g, '$1');            // _text_
+  t = t.replace(/^#{1,6}\s*/gm, '');            // baslik isaretleri
+  t = t.replace(/^\s*[-*+]\s+/gm, '');          // liste madde isaretleri (basa)
+  t = t.replace(/^\s*\d+[.)]\s+/gm, '');        // numarali liste
+  t = t.replace(/\s{2,}/g, ' ');                // fazla bosluk
+  t = t.replace(/[ \t]+\n/g, '\n');             // satir sonu bosluk
+  t = t.replace(/\n{3,}/g, '\n\n');             // fazla satir
+  return t.trim();
+}
+
 function addMsg(text, who, save = true) {
   const div = document.createElement('div');
   div.className = 'msg ' + who;
@@ -610,10 +645,11 @@ async function askAI(text) {
     // Bağlam bilgisi + son mesaj geçmişi
     const contextNote = buildContextPrompt();
     const reply = await window.ogretmenAPI.askAI(text, voiceLanguage === 'en-US' ? 'en' : 'tr', contextNote, chatHistory.slice(-6));
-    addMsg(reply, 'ai');
+    const cleanReply = cleanAiText(reply);
+    addMsg(cleanReply, 'ai');
     thinking.remove();
-    teacherSpeech.textContent = reply;
-    window.ogretmenAPI.speak(reply, voiceLanguage);
+    teacherSpeech.textContent = cleanReply;
+    window.ogretmenAPI.speak(cleanReply, voiceLanguage);
   } catch (e) {
     thinking.textContent = uiText('apiKeyMissing');
   }
