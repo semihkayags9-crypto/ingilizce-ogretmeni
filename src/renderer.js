@@ -425,9 +425,9 @@ function cleanAiText(raw) {
   t = t.replace(/^#{1,6}\s*/gm, '');            // baslik isaretleri
   t = t.replace(/^\s*[-*+]\s+/gm, '');          // liste madde isaretleri (basa)
   t = t.replace(/^\s*\d+[.)]\s+/gm, '');        // numarali liste
-  t = t.replace(/\s{2,}/g, ' ');                // fazla bosluk
-  t = t.replace(/[ \t]+\n/g, '\n');             // satir sonu bosluk
-  t = t.replace(/\n{3,}/g, '\n\n');             // fazla satir
+  t = t.replace(/[ \t]{2,}/g, ' ');            // fazla bosluk/tab (yeni satirlari KORU)
+  t = t.replace(/[ \t]+$/gm, '');              // satir sonu bosluklar
+  t = t.replace(/\n{3,}/g, '\n\n');            // fazla satir
   return t.trim();
 }
 
