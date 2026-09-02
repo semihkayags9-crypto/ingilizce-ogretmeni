@@ -56,7 +56,26 @@ window.ENGLISH_LESSONS = {
         { word: 'make', tr: 'yapmak', example: 'I make my bed every morning.' },
         { word: 'read', tr: 'okumak', example: 'I read books at night.' },
         { word: 'write', tr: 'yazmak', example: 'I write a letter to my friend.' },
-        { word: 'listen', tr: 'dinlemek', example: 'I listen to music.' }
+        { word: 'listen', tr: 'dinlemek', example: 'I listen to music.' },
+        { word: 'blue', tr: 'mavi', example: 'The sky is blue.' },
+        { word: 'red', tr: 'kırmızı', example: 'I like the red car.' },
+        { word: 'green', tr: 'yeşil', example: 'The grass is green.' },
+        { word: 'big', tr: 'büyük', example: 'That is a big house.' },
+        { word: 'small', tr: 'küçük', example: 'I have a small cat.' },
+        { word: 'hot', tr: 'sıcak', example: 'The soup is hot.' },
+        { word: 'cold', tr: 'soğuk', example: 'The water is cold.' },
+        { word: 'happy', tr: 'mutlu', example: 'I am happy today.' },
+        { word: 'sad', tr: 'üzgün', example: 'She looks sad.' },
+        { word: 'door', tr: 'kapı', example: 'Please close the door.' },
+        { word: 'window', tr: 'pencere', example: 'Open the window, please.' },
+        { word: 'table', tr: 'masa', example: 'The book is on the table.' },
+        { word: 'chair', tr: 'sandalye', example: 'Sit on the chair.' },
+        { word: 'phone', tr: 'telefon', example: 'My phone is new.' },
+        { word: 'computer', tr: 'bilgisayar', example: 'I work on the computer.' },
+        { word: 'money', tr: 'para', example: 'I need some money.' },
+        { word: 'time', tr: 'zaman', example: 'What time is it?' },
+        { word: 'day', tr: 'gün', example: 'Today is a nice day.' },
+        { word: 'night', tr: 'gece', example: 'The stars shine at night.' }
       ]
     },
     grammar: {
@@ -185,7 +204,22 @@ window.ENGLISH_LESSONS = {
         { word: 'because', tr: 'çünkü', example: 'I stayed home because it was raining.' },
         { word: 'but', tr: 'ama', example: 'I like tea but I do not like coffee.' },
         { word: 'and', tr: 've', example: 'I like apples and bananas.' },
-        { word: 'or', tr: 'veya', example: 'Do you want tea or coffee?' }
+        { word: 'or', tr: 'veya', example: 'Do you want tea or coffee?' },
+        { word: 'family', tr: 'aile', example: 'I love my family.' },
+        { word: 'friend', tr: 'arkadaş', example: 'He is my best friend.' },
+        { word: 'teacher', tr: 'öğretmen', example: 'Our teacher is very kind.' },
+        { word: 'student', tr: 'öğrenci', example: 'I am a student.' },
+        { word: 'hospital', tr: 'hastane', example: 'The hospital is nearby.' },
+        { word: 'airport', tr: 'havalimanı', example: 'We went to the airport.' },
+        { word: 'train', tr: 'tren', example: 'I take the train to work.' },
+        { word: 'bus', tr: 'otobüs', example: 'The bus is late today.' },
+        { word: 'breakfast', tr: 'kahvaltı', example: 'I eat breakfast at 8.' },
+        { word: 'lunch', tr: 'öğle yemeği', example: 'We have lunch together.' },
+        { word: 'dinner', tr: 'akşam yemeği', example: 'Dinner is ready.' },
+        { word: 'weather', tr: 'hava', example: 'The weather is nice today.' },
+        { word: 'holiday', tr: 'tatil', example: 'We have a holiday next week.' },
+        { word: 'ticket', tr: 'bilet', example: 'I bought a train ticket.' },
+        { word: 'address', tr: 'adres', example: 'What is your address?' }
       ]
     },
     grammar: {
