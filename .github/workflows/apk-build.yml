@@ -63,9 +63,12 @@ jobs:
           echo "surum: $COMMIT-$TARIH"
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git checkout --orphan ota
+          # ota branch'i varsa ona gec (orphan hata verirdi), yoksa olustur
+          git checkout ota 2>/dev/null || git checkout --orphan ota
+          # calisma agacini temizle (sadece app.html + version.json kalsin)
           git rm -rf . --quiet || true
           cp ota-app.html app.html
           git add app.html version.json
-          git commit -m "OTA guncelleme: $COMMIT-$TARIH"
+          # degisiklik yoksa (ayni surum) commit etme, yoksa pull hata verir
+          if git diff --cached --quiet; then echo "OTA degisiklik yok"; else git commit -m "OTA guncelleme: $COMMIT-$TARIH"; fi
           git push -f origin ota
