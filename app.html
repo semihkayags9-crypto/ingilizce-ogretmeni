@@ -1,0 +1,2398 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>İngilizce Öğretmeni Aven</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Space Grotesk', 'Nunito', 'Segoe UI', Tahoma, sans-serif;
+    background: #f4f7fb;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+  /* Sol panel: seviye + ders modülleri */
+  #lessonArea {
+    flex: 2;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 2px solid #dbe3ee;
+    background: #f4f7fb;
+    overflow-y: auto;
+  }
+  #levelBar {
+    padding: 14px 16px;
+    background: #eef2f9;
+    border-bottom: 1px solid #dbe3ee;
+  }
+  #levelBar h2 { margin: 0 0 10px; font-size: 17px; color: #23344b; }
+  #levelSelect {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #b8c5d4;
+    font-size: 15px;
+    background: #fff;
+  }
+  #moduleBar {
+    padding: 12px 16px;
+    background: #fff;
+    border-bottom: 1px solid #dbe3ee;
+  }
+  #moduleBar h3 { margin: 0 0 10px; font-size: 15px; color: #445; }
+  #moduleGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+  }
+  .module-btn {
+    padding: 12px 10px;
+    border: 1px solid #ccd;
+    border-radius: 10px;
+    background: #f8fafd;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: center;
+    transition: all .15s;
+  }
+  .module-btn:hover { background: #e8f0ff; border-color: #3f6fd1; }
+  .module-btn.active { background: #3f6fd1; color: #fff; border-color: #3f6fd1; }
+  #lessonContent {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+  }
+  #lessonTitle { margin: 0 0 6px; font-size: 18px; color: #23344b; }
+  #lessonDesc { margin: 0 0 14px; color: #566579; font-size: 14px; line-height: 1.5; }
+  #lessonBody { font-size: 15px; line-height: 1.6; color: #24344c; }
+  .vocab-card {
+    background: #fff;
+    border: 1px solid #dbe3ee;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .vocab-word { font-size: 18px; font-weight: 700; color: #1a4fbf; }
+  .vocab-tr { color: #566579; font-size: 14px; margin-top: 2px; }
+  .vocab-example { color: #1a7a3c; font-size: 14px; margin-top: 4px; font-style: italic; }
+  .grammar-box {
+    background: #fff;
+    border-left: 4px solid #3f6fd1;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .grammar-rule { font-weight: 600; color: #23344b; margin-bottom: 4px; }
+  .grammar-example { color: #1a7a3c; font-size: 14px; }
+  .exercise-box {
+    background: #fff8e6;
+    border: 1px solid #f0d98a;
+    border-radius: 10px;
+    padding: 14px;
+    margin-top: 14px;
+  }
+  .exercise-box h4 { margin: 0 0 8px; color: #8a6d1a; }
+  .exercise-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccd;
+    border-radius: 8px;
+    font-size: 15px;
+    margin-top: 8px;
+  }
+  .exercise-btn {
+    margin-top: 8px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #3f6fd1;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .exercise-feedback { margin-top: 8px; font-size: 14px; font-weight: 600; }
+  .exercise-feedback.correct { color: #1a7a3c; }
+  .exercise-feedback.wrong { color: #c0392b; }
+  .speak-btn {
+    margin-top: 8px;
+    padding: 8px 14px;
+    border: 1px solid #3f6fd1;
+    border-radius: 8px;
+    background: #fff;
+    color: #3f6fd1;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .speak-btn:hover { background: #e8f0ff; }
+
+  /* Sağ panel: sohbet */
+  #chatPanel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    min-width: 320px;
+  }
+  #chatHeader {
+    padding: 14px;
+    background: #3f6fd1;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  #apiKeyBtn, #voiceLangBtn {
+    border: 1px solid rgba(255,255,255,0.7);
+    border-radius: 7px;
+    padding: 6px 9px;
+    color: white;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  #showRobotBtn {
+    display: none;
+    border: 1px solid rgba(255,255,255,0.7);
+    border-radius: 7px;
+    padding: 6px 9px;
+    color: white;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  #showRobotBtn.visible { display: inline-block; }
+  #teacherStage {
+    position: relative;
+    min-height: 240px;
+    padding: 8px 34px 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #e9f1ff, #f8fbff);
+    border-bottom: 1px solid #d7e3f4;
+  }
+  #teacherStage[hidden] { display: none; }
+  #robotWrap {
+    flex: 0 0 200px;
+    height: 210px;
+    border-radius: 18px;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 24%, #ffffff, #c9dbf5 70%);
+    box-shadow: 0 5px 14px rgba(44, 83, 135, .2);
+  }
+  #avenRobot { width: 100%; height: 100%; }
+  #teacherStage.speaking #robotWrap { animation: avenTalk .65s ease-in-out infinite alternate; }
+  @keyframes avenTalk { from { transform: translateY(0) scale(1); } to { transform: translateY(-4px) scale(1.025); } }
+  #teacherBubble {
+    position: relative;
+    flex: 1;
+    align-self: center;
+    padding: 12px 14px;
+    border-radius: 14px;
+    color: #24344c;
+    background: white;
+    box-shadow: 0 3px 12px rgba(39, 72, 112, .12);
+    line-height: 1.4;
+    font-size: 14px;
+  }
+  #teacherBubble::before {
+    content: '';
+    position: absolute;
+    left: -9px;
+    top: 50%;
+    width: 17px;
+    height: 17px;
+    background: white;
+    transform: translateY(-50%) rotate(45deg);
+  }
+  #teacherName { display: block; color: #3f6fd1; font-weight: 700; margin-bottom: 4px; }
+  #teacherSpeech { position: relative; margin: 0; }
+  #hideRobotBtn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    color: #52657e;
+    background: #fff;
+    cursor: pointer;
+    font-size: 17px;
+  }
+  #chatLog {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+  }
+  .msg { margin-bottom: 10px; line-height: 1.4; }
+  .msg.user { text-align: right; color: #1a4fbf; }
+  .msg.ai { text-align: left; color: #1a7a3c; }
+  #chatInputBar {
+    display: flex;
+    padding: 10px;
+    gap: 8px;
+    border-top: 1px solid #eee;
+  }
+  #chatInput {
+    flex: 1;
+    padding: 10px;
+    font-size: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+  #chatInputBar button {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    background: #3f6fd1;
+    color: white;
+    cursor: pointer;
+    font-size: 15px;
+  }
+  #micBtn { background: #e0546a !important; }
+  #micBtn.listening { background: #ff2244 !important; }
+  #apiKeyDialog {
+    border: none;
+    border-radius: 12px;
+    width: min(420px, calc(100vw - 36px));
+    padding: 0;
+    box-shadow: 0 12px 36px rgba(0,0,0,.28);
+  }
+  #apiKeyDialog::backdrop { background: rgba(19, 37, 61, .45); }
+  .dialogContent { padding: 22px; }
+  .dialogContent h2 { margin: 0 0 8px; font-size: 20px; color: #23344b; }
+  .dialogContent p { color: #566579; line-height: 1.45; margin: 0 0 14px; }
+  #apiKeyInput { box-sizing: border-box; width: 100%; padding: 11px; border: 1px solid #b8c5d4; border-radius: 7px; font-size: 14px; }
+  #apiKeyStatus { min-height: 20px; margin: 10px 0 0; font-size: 13px; color: #b22d3a; }
+  .dialogActions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+  .dialogActions button { border: none; border-radius: 7px; padding: 9px 13px; cursor: pointer; font-size: 14px; }
+  #saveApiKeyBtn { background: #3f6fd1; color: white; }
+
+  /* ===== MOBİL UYUM (telefon ekranı) ===== */
+  #mobileTabs { display: none; }
+  @media (max-width: 768px) {
+    body {
+      flex-direction: column;
+      height: 100dvh;
+      overflow: hidden;
+    }
+    #mobileTabs {
+      display: flex;
+      flex: 0 0 auto;
+      background: #2c3e50;
+      border-bottom: 2px solid #1a2733;
+      z-index: 100;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 13px 8px;
+      border: none;
+      background: transparent;
+      color: #aab8c8;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active {
+      color: #fff;
+      background: #34495e;
+      border-bottom-color: #4fc3f7;
+    }
+    #lessonArea {
+      flex: 1;
+      border-right: none;
+      border-bottom: 2px solid #dbe3ee;
+      overflow-y: auto;
+      display: none;
+    }
+    #lessonArea.tab-active { display: block; }
+    #chatPanel {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      display: none;
+    }
+    #chatPanel.tab-active { display: flex; }
+    #levelBar { padding: 10px 12px; }
+    #levelBar h2 { font-size: 15px; margin-bottom: 8px; }
+    #moduleBar { padding: 10px 12px; }
+    #moduleGrid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; }
+    .module-btn { padding: 10px 8px; font-size: 13px; }
+    #teacherStage { min-height: 150px; }
+    #robotWrap { flex: 0 0 120px; height: 130px; }
+    #chatHeader { flex-wrap: wrap; gap: 6px; }
+    #chatHeader button { padding: 6px 8px; font-size: 12px; }
+    #chatInputBar { padding: 8px; }
+    #chatInput { font-size: 15px; }
+    #micBtn { font-size: 13px; padding: 10px 12px; }
+    .msg { font-size: 14px; }
+    #lessonBody { font-size: 14px; }
+    .exercise-box { padding: 10px; }
+    .exercise-input { font-size: 14px; }
+    #teacherBubble { font-size: 13px; }
+    .dialog { width: min(92vw, 420px); }
+  }
+</style>
+<script>window.APP_VERSION="07b3ebb-20260902";</script>
+</head>
+<body>
+
+  <div id="mobileTabs">
+    <button class="tab-btn active" data-tab="lessonArea" id="tabLessons">📚 Dersler</button>
+    <button class="tab-btn" data-tab="chatPanel" id="tabChat">💬 Sohbet</button>
+  </div>
+
+  <div id="lessonArea" class="tab-active">
+    <div id="levelBar">
+      <h2>📚 İngilizce Seviyen</h2>
+      <select id="levelSelect">
+        <option value="A1" id="optA1">A1 — Başlangıç</option>
+        <option value="A2" id="optA2">A2 — Temel</option>
+        <option value="B1" id="optB1">B1 — Orta</option>
+        <option value="B2" id="optB2">B2 — Orta-Üstü</option>
+        <option value="C1" id="optC1">C1 — İleri</option>
+      </select>
+    </div>
+    <div id="moduleBar">
+      <h3 id="moduleBarTitle">📖 Ders Modülleri</h3>
+      <div id="moduleGrid">
+        <button class="module-btn active" data-module="vocab" id="modVocab">🔤 Kelime</button>
+        <button class="module-btn" data-module="grammar" id="modGrammar">📐 Gramer</button>
+        <button class="module-btn" data-module="sentences" id="modSentences">✍️ Cümle Kurma</button>
+        <button class="module-btn" data-module="speaking" id="modSpeaking">🎤 Konuşma</button>
+        <button class="module-btn" data-module="listening" id="modListening">👂 Dinleme</button>
+      </div>
+    </div>
+    <div id="lessonContent">
+      <h2 id="lessonTitle"></h2>
+      <p id="lessonDesc"></p>
+      <div id="lessonBody"></div>
+    </div>
+  </div>
+
+  <div id="chatPanel">
+    <div id="chatHeader"><span id="chatHeaderTitle">🧑‍🏫 İngilizce Öğretmeni Aven</span><span><button id="voiceLangBtn" type="button">🌐 TR</button><button id="showRobotBtn" type="button">🤖 Aven’i Göster</button><button id="apiKeyBtn" type="button">⚙ API Anahtarı</button><button id="voiceSetBtn" type="button">🔊 Ses</button></span></div>
+    <section id="teacherStage" aria-label="Aven öğretmen">
+      <button id="hideRobotBtn" type="button" title="Aven’i gizle" aria-label="Aven’i gizle">×</button>
+      <div id="robotWrap"><model-viewer id="avenRobot" src="assets/aven-robot.glb" alt="Aven öğretmen robotu" camera-controls shadow-intensity="1" interaction-prompt="none"></model-viewer></div>
+      <div id="teacherBubble"><span id="teacherName">Aven</span><p id="teacherSpeech">Merhaba! Ben Aven, İngilizce öğretmenin. Hangi seviyedesin?</p></div>
+    </section>
+    <div id="chatLog"></div>
+    <div id="chatInputBar">
+      <button id="micBtn" title="Aven ile sesli konuşmayı başlat">🎤 Konuş</button>
+      <input id="chatInput" type="text" placeholder="İngilizce ya da Türkçe yaz..." />
+      <button id="sendBtn">Gönder</button>
+    </div>
+  </div>
+
+  <dialog id="apiKeyDialog" aria-labelledby="apiKeyTitle">
+    <form class="dialogContent" id="apiKeyForm">
+      <h2 id="apiKeyTitle">Groq API Anahtarı</h2>
+      <p id="apiKeyDesc">Anahtar sadece bu bilgisayardaki <code>.env</code> dosyasına kaydedilir. Anahtarını kimseyle paylaşma.</p>
+      <label for="apiKeyInput" id="apiKeyInputLabel">API anahtarı</label>
+      <input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false" placeholder="gsk_..." required />
+      <div id="apiKeyStatus" role="status"></div>
+      <div class="dialogActions">
+        <button id="cancelApiKeyBtn" type="button">Vazgeç</button>
+        <button id="saveApiKeyBtn" type="submit">Kaydet</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+/*! Capacitor: https://capacitorjs.com/ - MIT License */
+var capacitorExports=function(e){"use strict";var t;e.ExceptionCode=void 0,(t=e.ExceptionCode||(e.ExceptionCode={})).Unimplemented="UNIMPLEMENTED",t.Unavailable="UNAVAILABLE";class n extends Error{constructor(e,t,n){super(e),this.message=e,this.code=t,this.data=n}}const s=t=>{const s=t.CapacitorCustomPlatform||null,r=t.Capacitor||{},i=r.Plugins=r.Plugins||{},a=()=>null!==s?s.name:(e=>{var t,n;return(null==e?void 0:e.androidBridge)?"android":(null===(n=null===(t=null==e?void 0:e.webkit)||void 0===t?void 0:t.messageHandlers)||void 0===n?void 0:n.bridge)?"ios":"web"})(t),o=e=>{var t;return null===(t=r.PluginHeaders)||void 0===t?void 0:t.find(t=>t.name===e)},c=new Map;return r.convertFileSrc||(r.convertFileSrc=e=>e),r.getPlatform=a,r.handleError=e=>t.console.error(e),r.isNativePlatform=()=>"web"!==a(),r.isPluginAvailable=e=>{const t=c.get(e);return!!(null==t?void 0:t.platforms.has(a()))||!!o(e)},r.registerPlugin=(t,l={})=>{const d=c.get(t);if(d)return console.warn(`Capacitor plugin "${t}" already registered. Cannot register plugins twice.`),d.proxy;const u=a(),p=o(t);let m;const h=i=>{let a;const o=(...o)=>{const c=(async()=>(!m&&u in l?m=m="function"==typeof l[u]?await l[u]():l[u]:null!==s&&!m&&"web"in l&&(m=m="function"==typeof l.web?await l.web():l.web),m))().then(s=>{const c=((s,i)=>{var a,o;if(!p){if(s)return null===(o=s[i])||void 0===o?void 0:o.bind(s);throw new n(`"${t}" plugin is not implemented on ${u}`,e.ExceptionCode.Unimplemented)}{const e=null==p?void 0:p.methods.find(e=>i===e.name);if(e)return"promise"===e.rtype?e=>r.nativePromise(t,i.toString(),e):(e,n)=>r.nativeCallback(t,i.toString(),e,n);if(s)return null===(a=s[i])||void 0===a?void 0:a.bind(s)}})(s,i);if(c){const e=c(...o);return a=null==e?void 0:e.remove,e}throw new n(`"${t}.${i}()" is not implemented on ${u}`,e.ExceptionCode.Unimplemented)});return"addListener"===i&&(c.remove=async()=>a()),c};return o.toString=()=>`${i.toString()}() { [capacitor code] }`,Object.defineProperty(o,"name",{value:i,writable:!1,configurable:!1}),o},w=h("addListener"),g=h("removeListener"),v=(e,t)=>{const n=w({eventName:e},t),s=async()=>{const s=await n;g({eventName:e,callbackId:s},t)},r=new Promise(e=>n.then(()=>e({remove:s})));return r.remove=async()=>{console.warn("Using addListener() without 'await' is deprecated."),await s()},r},y=new Proxy({},{get(e,t){switch(t){case"$$typeof":return;case"toJSON":return()=>({});case"addListener":return p?v:w;case"removeListener":return g;default:return h(t)}}});return i[t]=y,c.set(t,{name:t,proxy:y,platforms:new Set([...Object.keys(l),...p?[u]:[]])}),y},r.Exception=n,r.DEBUG=!!r.DEBUG,r.isLoggingEnabled=!!r.isLoggingEnabled,r},r=(e=>e.Capacitor=s(e))("undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:"undefined"!=typeof window?window:"undefined"!=typeof global?global:{}),i=r.registerPlugin;class a{constructor(){this.listeners={},this.retainedEventArguments={},this.windowListeners={}}addListener(e,t){let n=!1;this.listeners[e]||(this.listeners[e]=[],n=!0),this.listeners[e].push(t);const s=this.windowListeners[e];s&&!s.registered&&this.addWindowListener(s),n&&this.sendRetainedArgumentsForEvent(e);return Promise.resolve({remove:async()=>this.removeListener(e,t)})}async removeAllListeners(){this.listeners={};for(const e in this.windowListeners)this.removeWindowListener(this.windowListeners[e]);this.windowListeners={}}notifyListeners(e,t,n){const s=this.listeners[e];if(s)s.forEach(e=>e(t));else if(n){let n=this.retainedEventArguments[e];n||(n=[]),n.push(t),this.retainedEventArguments[e]=n}}hasListeners(e){var t;return!!(null===(t=this.listeners[e])||void 0===t?void 0:t.length)}registerWindowListener(e,t){this.windowListeners[t]={registered:!1,windowEventName:e,pluginEventName:t,handler:e=>{this.notifyListeners(t,e)}}}unimplemented(t="not implemented"){return new r.Exception(t,e.ExceptionCode.Unimplemented)}unavailable(t="not available"){return new r.Exception(t,e.ExceptionCode.Unavailable)}async removeListener(e,t){const n=this.listeners[e];if(!n)return;const s=n.indexOf(t);this.listeners[e].splice(s,1),this.listeners[e].length||this.removeWindowListener(this.windowListeners[e])}addWindowListener(e){window.addEventListener(e.windowEventName,e.handler),e.registered=!0}removeWindowListener(e){e&&(window.removeEventListener(e.windowEventName,e.handler),e.registered=!1)}sendRetainedArgumentsForEvent(e){const t=this.retainedEventArguments[e];t&&(delete this.retainedEventArguments[e],t.forEach(t=>{this.notifyListeners(e,t)}))}}const o=i("WebView"),c=e=>encodeURIComponent(e).replace(/%(2[346B]|5E|60|7C)/g,decodeURIComponent).replace(/[()]/g,escape),l=e=>e.replace(/(%[\dA-F]{2})+/gi,decodeURIComponent);class d extends a{async getCookies(){const e=document.cookie,t={};return e.split(";").forEach(e=>{if(e.length<=0)return;let[n,s]=e.replace(/=/,"CAP_COOKIE").split("CAP_COOKIE");n=l(n).trim(),s=l(s).trim(),t[n]=s}),t}async setCookie(e){try{const t=c(e.key),n=c(e.value),s=e.expires?`; expires=${e.expires.replace("expires=","")}`:"",r=(e.path||"/").replace("path=",""),i=null!=e.url&&e.url.length>0?`domain=${e.url}`:"";document.cookie=`${t}=${n||""}${s}; path=${r}; ${i};`}catch(e){return Promise.reject(e)}}async deleteCookie(e){try{document.cookie=`${e.key}=; Max-Age=0`}catch(e){return Promise.reject(e)}}async clearCookies(){try{const e=document.cookie.split(";")||[];for(const t of e)document.cookie=t.replace(/^ +/,"").replace(/=.*/,`=;expires=${(new Date).toUTCString()};path=/`)}catch(e){return Promise.reject(e)}}async clearAllCookies(){try{await this.clearCookies()}catch(e){return Promise.reject(e)}}}const u=i("CapacitorCookies",{web:()=>new d}),p=(e,t={})=>{const n=Object.assign({method:e.method||"GET",headers:e.headers},t),s=((e={})=>{const t=Object.keys(e);return Object.keys(e).map(e=>e.toLocaleLowerCase()).reduce((n,s,r)=>(n[s]=e[t[r]],n),{})})(e.headers)["content-type"]||"";if("string"==typeof e.data)n.body=e.data;else if(s.includes("application/x-www-form-urlencoded")){const t=new URLSearchParams;for(const[n,s]of Object.entries(e.data||{}))t.set(n,s);n.body=t.toString()}else if(s.includes("multipart/form-data")||e.data instanceof FormData){const t=new FormData;if(e.data instanceof FormData)e.data.forEach((e,n)=>{t.append(n,e)});else for(const n of Object.keys(e.data))t.append(n,e.data[n]);n.body=t;const s=new Headers(n.headers);s.delete("content-type"),n.headers=s}else(s.includes("application/json")||"object"==typeof e.data)&&(n.body=JSON.stringify(e.data));return n};class m extends a{async request(e){const t=p(e,e.webFetchExtra),n=((e,t=!0)=>e?Object.entries(e).reduce((e,n)=>{const[s,r]=n;let i,a;return Array.isArray(r)?(a="",r.forEach(e=>{i=t?encodeURIComponent(e):e,a+=`${s}=${i}&`}),a.slice(0,-1)):(i=t?encodeURIComponent(r):r,a=`${s}=${i}`),`${e}&${a}`},"").substr(1):null)(e.params,e.shouldEncodeUrlParams),s=n?`${e.url}?${n}`:e.url,r=await fetch(s,t),i=r.headers.get("content-type")||"";let a,o,{responseType:c="text"}=r.ok?e:{};switch(i.includes("application/json")&&(c="json"),c){case"arraybuffer":case"blob":o=await r.blob(),a=await(async e=>new Promise((t,n)=>{const s=new FileReader;s.onload=()=>{const e=s.result;t(e.indexOf(",")>=0?e.split(",")[1]:e)},s.onerror=e=>n(e),s.readAsDataURL(e)}))(o);break;case"json":a=await r.json();break;default:a=await r.text()}const l={};return r.headers.forEach((e,t)=>{l[t]=e}),{data:a,headers:l,status:r.status,url:r.url}}async get(e){return this.request(Object.assign(Object.assign({},e),{method:"GET"}))}async post(e){return this.request(Object.assign(Object.assign({},e),{method:"POST"}))}async put(e){return this.request(Object.assign(Object.assign({},e),{method:"PUT"}))}async patch(e){return this.request(Object.assign(Object.assign({},e),{method:"PATCH"}))}async delete(e){return this.request(Object.assign(Object.assign({},e),{method:"DELETE"}))}}const h=i("CapacitorHttp",{web:()=>new m});var w,g;e.SystemBarsStyle=void 0,(w=e.SystemBarsStyle||(e.SystemBarsStyle={})).Dark="DARK",w.Light="LIGHT",w.Default="DEFAULT",e.SystemBarType=void 0,(g=e.SystemBarType||(e.SystemBarType={})).StatusBar="StatusBar",g.NavigationBar="NavigationBar";class v extends a{async setStyle(){this.unavailable("not available for web")}async setAnimation(){this.unavailable("not available for web")}async show(){this.unavailable("not available for web")}async hide(){this.unavailable("not available for web")}}const y=i("SystemBars",{web:()=>new v});return e.Capacitor=r,e.CapacitorCookies=u,e.CapacitorException=n,e.CapacitorHttp=h,e.SystemBars=y,e.WebPlugin=a,e.WebView=o,e.buildRequestInit=p,e.registerPlugin=i,Object.defineProperty(e,"__esModule",{value:!0}),e}({});
+//# sourceMappingURL=capacitor.js.map
+
+</script>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <script>
+// lessons-data.js
+// İngilizce müfredatı - her seviye (A1-C1) için zengin ders içerikleri.
+// renderer.js bu veriyi window.ENGLISH_LESSONS üzerinden kullanır.
+window.ENGLISH_LESSONS = {
+  A1: {
+    vocab: {
+      title: 'Temel Kelimeler',
+      desc: 'Günlük hayatta en çok kullanılan temel kelimeler. Her kelimeyi dinle ve tekrar et.',
+      items: [
+        { word: 'hello', tr: 'merhaba', example: 'Hello, how are you?' },
+        { word: 'goodbye', tr: 'hoşça kal', example: 'Goodbye, see you tomorrow.' },
+        { word: 'please', tr: 'lütfen', example: 'Please sit down.' },
+        { word: 'thank you', tr: 'teşekkür ederim', example: 'Thank you for your help.' },
+        { word: 'yes', tr: 'evet', example: 'Yes, I understand.' },
+        { word: 'no', tr: 'hayır', example: 'No, thank you.' },
+        { word: 'water', tr: 'su', example: 'Can I have some water?' },
+        { word: 'food', tr: 'yemek', example: 'The food is delicious.' },
+        { word: 'house', tr: 'ev', example: 'My house is big.' },
+        { word: 'family', tr: 'aile', example: 'I love my family.' },
+        { word: 'mother', tr: 'anne', example: 'My mother is kind.' },
+        { word: 'father', tr: 'baba', example: 'My father works in a hospital.' },
+        { word: 'brother', tr: 'erkek kardeş', example: 'I have one brother.' },
+        { word: 'sister', tr: 'kız kardeş', example: 'My sister is young.' },
+        { word: 'friend', tr: 'arkadaş', example: 'She is my best friend.' },
+        { word: 'teacher', tr: 'öğretmen', example: 'My teacher is very nice.' },
+        { word: 'school', tr: 'okul', example: 'I go to school every day.' },
+        { word: 'apple', tr: 'elma', example: 'I eat an apple every morning.' },
+        { word: 'book', tr: 'kitap', example: 'This book is interesting.' },
+        { word: 'pen', tr: 'kalem', example: 'Can I borrow your pen?' },
+        { word: 'cat', tr: 'kedi', example: 'The cat is sleeping on the sofa.' },
+        { word: 'dog', tr: 'köpek', example: 'My dog is very friendly.' },
+        { word: 'bird', tr: 'kuş', example: 'The bird is singing in the tree.' },
+        { word: 'car', tr: 'araba', example: 'The car is red.' },
+        { word: 'bus', tr: 'otobüs', example: 'I take the bus to work.' },
+        { word: 'morning', tr: 'sabah', example: 'I wake up early in the morning.' },
+        { word: 'night', tr: 'gece', example: 'The stars are bright at night.' },
+        { word: 'day', tr: 'gün', example: 'Have a nice day!' },
+        { word: 'sun', tr: 'güneş', example: 'The sun is shining.' },
+        { word: 'rain', tr: 'yağmur', example: 'It is raining outside.' },
+        { word: 'big', tr: 'büyük', example: 'This is a big house.' },
+        { word: 'small', tr: 'küçük', example: 'I have a small car.' },
+        { word: 'hot', tr: 'sıcak', example: 'The soup is hot.' },
+        { word: 'cold', tr: 'soğuk', example: 'The water is cold.' },
+        { word: 'good', tr: 'iyi', example: 'This is a good idea.' },
+        { word: 'bad', tr: 'kötü', example: 'The weather is bad today.' },
+        { word: 'happy', tr: 'mutlu', example: 'I am very happy today.' },
+        { word: 'sad', tr: 'üzgün', example: 'She is sad because it is raining.' },
+        { word: 'eat', tr: 'yemek yemek', example: 'I eat breakfast at seven.' },
+        { word: 'drink', tr: 'içmek', example: 'I drink water.' },
+        { word: 'go', tr: 'gitmek', example: 'I go to school.' },
+        { word: 'come', tr: 'gelmek', example: 'Please come here.' },
+        { word: 'see', tr: 'görmek', example: 'I can see the mountains.' },
+        { word: 'like', tr: 'hoşlanmak', example: 'I like chocolate.' },
+        { word: 'want', tr: 'istemek', example: 'I want a glass of water.' },
+        { word: 'have', tr: 'sahip olmak', example: 'I have a new bike.' },
+        { word: 'make', tr: 'yapmak', example: 'I make my bed every morning.' },
+        { word: 'read', tr: 'okumak', example: 'I read books at night.' },
+        { word: 'write', tr: 'yazmak', example: 'I write a letter to my friend.' },
+        { word: 'listen', tr: 'dinlemek', example: 'I listen to music.' },
+        { word: 'blue', tr: 'mavi', example: 'The sky is blue.' },
+        { word: 'red', tr: 'kırmızı', example: 'I like the red car.' },
+        { word: 'green', tr: 'yeşil', example: 'The grass is green.' },
+        { word: 'big', tr: 'büyük', example: 'That is a big house.' },
+        { word: 'small', tr: 'küçük', example: 'I have a small cat.' },
+        { word: 'hot', tr: 'sıcak', example: 'The soup is hot.' },
+        { word: 'cold', tr: 'soğuk', example: 'The water is cold.' },
+        { word: 'happy', tr: 'mutlu', example: 'I am happy today.' },
+        { word: 'sad', tr: 'üzgün', example: 'She looks sad.' },
+        { word: 'door', tr: 'kapı', example: 'Please close the door.' },
+        { word: 'window', tr: 'pencere', example: 'Open the window, please.' },
+        { word: 'table', tr: 'masa', example: 'The book is on the table.' },
+        { word: 'chair', tr: 'sandalye', example: 'Sit on the chair.' },
+        { word: 'phone', tr: 'telefon', example: 'My phone is new.' },
+        { word: 'computer', tr: 'bilgisayar', example: 'I work on the computer.' },
+        { word: 'money', tr: 'para', example: 'I need some money.' },
+        { word: 'time', tr: 'zaman', example: 'What time is it?' },
+        { word: 'day', tr: 'gün', example: 'Today is a nice day.' },
+        { word: 'night', tr: 'gece', example: 'The stars shine at night.' }
+      ]
+    },
+    grammar: {
+      title: 'Basit Cümleler',
+      desc: 'İngilizcede en temel cümle yapısı: Özne + Fiil + Nesne. To be fiili ve geniş zaman.',
+      items: [
+        { rule: 'To be (olmak) fiili - ben', example: 'I am a student. / I am happy.' },
+        { rule: 'To be (olmak) fiili - sen/o', example: 'You are my friend. / She is a doctor.' },
+        { rule: 'To be (olmak) fiili - çoğul', example: 'We are students. / They are at home.' },
+        { rule: 'To be - olumsuz', example: 'I am not tired. / She is not here.' },
+        { rule: 'To be - soru', example: 'Are you ready? / Is he your brother?' },
+        { rule: 'A/an belirteci', example: 'I have a car. / She is an engineer.' },
+        { rule: 'Bu/Şu (this/that)', example: 'This is my book. / That is your pen.' },
+        { rule: 'Geniş zaman (Simple Present) - ben, sen', example: 'I eat breakfast. / You play football.' },
+        { rule: 'Geniş zaman (Simple Present) - o', example: 'He works in a bank. / She likes tea.' },
+        { rule: 'Olumsuz geniş zaman', example: 'I do not like coffee. / He does not play tennis.' },
+        { rule: 'Soru geniş zaman', example: 'Do you speak English? / Does he work here?' },
+        { rule: 'İyelik (my, your, his, her)', example: 'This is my house. / That is her bag.' },
+        { rule: 'Çoğul yapma (+s)', example: 'one book – two books / one cat – three cats' },
+        { rule: 'There is / There are', example: 'There is a cat on the table. / There are two dogs.' },
+        { rule: 'Can (yapabilmek)', example: 'I can swim. / She can speak English.' },
+        { rule: 'Saat ve zaman ifadeleri', example: 'What time is it? It is three o’clock.' }
+      ]
+    },
+    sentences: {
+      title: 'Cümle Kurma',
+      desc: 'Kelimeleri doğru sıraya dizerek cümle kur. Her cümleyi yaz ve kontrol et.',
+      items: [
+        { prompt: 'I / a student / am', answer: 'I am a student.' },
+        { prompt: 'you / are / my friend', answer: 'You are my friend.' },
+        { prompt: 'she / happy / is', answer: 'She is happy.' },
+        { prompt: 'I / water / want', answer: 'I want water.' },
+        { prompt: 'this / is / my book', answer: 'This is my book.' },
+        { prompt: 'I / have / a car', answer: 'I have a car.' },
+        { prompt: 'he / works / in a bank', answer: 'He works in a bank.' },
+        { prompt: 'she / likes / tea', answer: 'She likes tea.' },
+        { prompt: 'I / do not like / coffee', answer: 'I do not like coffee.' },
+        { prompt: 'do you / speak / English', answer: 'Do you speak English?' },
+        { prompt: 'there is / a cat / on the table', answer: 'There is a cat on the table.' },
+        { prompt: 'I / can / swim', answer: 'I can swim.' },
+        { prompt: 'my mother / is / kind', answer: 'My mother is kind.' },
+        { prompt: 'they / are / at home', answer: 'They are at home.' },
+        { prompt: 'I / listen to / music', answer: 'I listen to music.' }
+      ]
+    },
+    speaking: {
+      title: 'Konuşma Pratiği',
+      desc: 'Aven ile sesli konuş. Mikrofon düğmesine bas, İngilizce konuş, Aven seni düzeltsin.',
+      items: [
+        { prompt: 'Kendini tanıt: "My name is..."', example: 'My name is Ali. I am from Turkey.' },
+        { prompt: 'Selamlaş ve hal hatır sor: "How are you?"', example: 'Hello! How are you? I am fine, thank you.' },
+        { prompt: 'Kendin hakkında konuş: "I like..."', example: 'I like music. I like playing football.' },
+        { prompt: 'Ailenden bahset: "I have..."', example: 'I have one brother and one sister. I love my family.' },
+        { prompt: 'Nerede yaşadığını söyle: "I live in..."', example: 'I live in Istanbul. It is a big city.' },
+        { prompt: 'Yaşını söyle: "I am ... years old"', example: 'I am twelve years old.' },
+        { prompt: 'Hobini anlat: "I play..."', example: 'I play football and I read books.' },
+        { prompt: 'Bugün ne yaptığını anlat', example: 'I woke up early and went to school.' }
+      ]
+    },
+    listening: {
+      title: 'Dinleme Pratiği',
+      desc: 'Aven’in söylediği cümleyi dinle, ne anladığını yaz.',
+      items: [
+        { text: 'Good morning, how are you today?', tr: 'Günaydın, bugün nasılsın?' },
+        { text: 'My name is Aven and I am your teacher.', tr: 'Benim adım Aven ve ben senin öğretmeninim.' },
+        { text: 'Please open your book and read.', tr: 'Lütfen kitabını aç ve oku.' },
+        { text: 'I have a big family.', tr: 'Benim büyük bir ailem var.' },
+        { text: 'The cat is sleeping on the sofa.', tr: 'Kedi koltukta uyuyor.' },
+        { text: 'I like ice cream very much.', tr: 'Dondurmayı çok severim.' },
+        { text: 'Where do you live?', tr: 'Nerede yaşıyorsun?' },
+        { text: 'Can you help me, please?', tr: 'Bana yardım eder misin, lütfen?' }
+      ]
+    }
+  },
+  A2: {
+    vocab: {
+      title: 'Günlük Konuşma Kelimeleri',
+      desc: 'Günlük konuşmalarda sık kullanılan kelimeler ve ifadeler.',
+      items: [
+        { word: 'weather', tr: 'hava durumu', example: 'The weather is nice today.' },
+        { word: 'travel', tr: 'seyahat', example: 'I want to travel to London.' },
+        { word: 'money', tr: 'para', example: 'How much money do you have?' },
+        { word: 'time', tr: 'zaman', example: 'What time is it?' },
+        { word: 'work', tr: 'iş', example: 'I go to work by bus.' },
+        { word: 'school', tr: 'okul', example: 'My school is near my house.' },
+        { word: 'friend', tr: 'arkadaş', example: 'She is my best friend.' },
+        { word: 'happy', tr: 'mutlu', example: 'I am very happy today.' },
+        { word: 'hungry', tr: 'aç', example: 'I am hungry, let’s eat.' },
+        { word: 'tired', tr: 'yorgun', example: 'I am tired after work.' },
+        { word: 'breakfast', tr: 'kahvaltı', example: 'I eat breakfast at seven.' },
+        { word: 'lunch', tr: 'öğle yemeği', example: 'Let’s have lunch together.' },
+        { word: 'dinner', tr: 'akşam yemeği', example: 'We have dinner at eight.' },
+        { word: 'usually', tr: 'genellikle', example: 'I usually wake up early.' },
+        { word: 'always', tr: 'her zaman', example: 'He always drinks coffee.' },
+        { word: 'sometimes', tr: 'bazen', example: 'Sometimes I walk to school.' },
+        { word: 'never', tr: 'asla', example: 'I never eat fast food.' },
+        { word: 'often', tr: 'sık sık', example: 'We often go to the cinema.' },
+        { word: 'buy', tr: 'satın almak', example: 'I want to buy a new phone.' },
+        { word: 'sell', tr: 'satmak', example: 'They sell fresh vegetables.' },
+        { word: 'cook', tr: 'pişirmek', example: 'My mother cooks delicious food.' },
+        { word: 'clean', tr: 'temizlemek', example: 'I clean my room on weekends.' },
+        { word: 'watch', tr: 'izlemek', example: 'I watch TV in the evening.' },
+        { word: 'play', tr: 'oynamak', example: 'We play football after school.' },
+        { word: 'walk', tr: 'yürümek', example: 'I walk to the park.' },
+        { word: 'run', tr: 'koşmak', example: 'He runs every morning.' },
+        { word: 'swim', tr: 'yüzmek', example: 'I swim in the summer.' },
+        { word: 'read', tr: 'okumak', example: 'I read a book every night.' },
+        { word: 'write', tr: 'yazmak', example: 'She writes emails at work.' },
+        { word: 'listen', tr: 'dinlemek', example: 'I listen to the radio.' },
+        { word: 'tomorrow', tr: 'yarın', example: 'See you tomorrow!' },
+        { word: 'yesterday', tr: 'dün', example: 'I watched a movie yesterday.' },
+        { word: 'today', tr: 'bugün', example: 'Today is a beautiful day.' },
+        { word: 'week', tr: 'hafta', example: 'I have a busy week.' },
+        { word: 'month', tr: 'ay', example: 'Next month we travel.' },
+        { word: 'year', tr: 'yıl', example: 'I will graduate this year.' },
+        { word: 'morning', tr: 'sabah', example: 'I exercise in the morning.' },
+        { word: 'evening', tr: 'akşam', example: 'I relax in the evening.' },
+        { word: 'early', tr: 'erken', example: 'I wake up early.' },
+        { word: 'late', tr: 'geç', example: 'He arrives late to work.' },
+        { word: 'near', tr: 'yakın', example: 'My house is near the school.' },
+        { word: 'far', tr: 'uzak', example: 'The station is far from here.' },
+        { word: 'cheap', tr: 'ucuz', example: 'This shirt is cheap.' },
+        { word: 'expensive', tr: 'pahalı', example: 'That car is expensive.' },
+        { word: 'quickly', tr: 'hızlıca', example: 'She finished quickly.' },
+        { word: 'slowly', tr: 'yavaşça', example: 'He speaks slowly.' },
+        { word: 'because', tr: 'çünkü', example: 'I stayed home because it was raining.' },
+        { word: 'but', tr: 'ama', example: 'I like tea but I do not like coffee.' },
+        { word: 'and', tr: 've', example: 'I like apples and bananas.' },
+        { word: 'or', tr: 'veya', example: 'Do you want tea or coffee?' },
+        { word: 'family', tr: 'aile', example: 'I love my family.' },
+        { word: 'friend', tr: 'arkadaş', example: 'He is my best friend.' },
+        { word: 'teacher', tr: 'öğretmen', example: 'Our teacher is very kind.' },
+        { word: 'student', tr: 'öğrenci', example: 'I am a student.' },
+        { word: 'hospital', tr: 'hastane', example: 'The hospital is nearby.' },
+        { word: 'airport', tr: 'havalimanı', example: 'We went to the airport.' },
+        { word: 'train', tr: 'tren', example: 'I take the train to work.' },
+        { word: 'bus', tr: 'otobüs', example: 'The bus is late today.' },
+        { word: 'breakfast', tr: 'kahvaltı', example: 'I eat breakfast at 8.' },
+        { word: 'lunch', tr: 'öğle yemeği', example: 'We have lunch together.' },
+        { word: 'dinner', tr: 'akşam yemeği', example: 'Dinner is ready.' },
+        { word: 'weather', tr: 'hava', example: 'The weather is nice today.' },
+        { word: 'holiday', tr: 'tatil', example: 'We have a holiday next week.' },
+        { word: 'ticket', tr: 'bilet', example: 'I bought a train ticket.' },
+        { word: 'address', tr: 'adres', example: 'What is your address?' }
+      ]
+    },
+    grammar: {
+      title: 'Zamanlar',
+      desc: 'Geçmiş, şimdiki ve gelecek zamanın temel kullanımı.',
+      items: [
+        { rule: 'Şimdiki zaman (Present Continuous)', example: 'I am studying English now. / She is cooking dinner.' },
+        { rule: 'Geçmiş zaman (Simple Past) - düzenli fiiller', example: 'I visited my grandmother. / We watched a movie.' },
+        { rule: 'Geçmiş zaman - düzensiz fiiller', example: 'I went to school. / She ate breakfast. / He saw the film.' },
+        { rule: 'Gelecek zaman (be going to)', example: 'I am going to travel next week. / It is going to rain.' },
+        { rule: 'Will ile gelecek', example: 'I will call you later. / She will help you.' },
+        { rule: 'Present Continuous ile gelecek plan', example: 'I am meeting my friend tomorrow.' },
+        { rule: 'Zarflar (always, usually, often)', example: 'I usually drink tea in the morning.' },
+        { rule: 'Karşılaştırma (comparatives)', example: 'This book is better than that one. / He is taller than me.' },
+        { rule: 'En üstünlük (superlatives)', example: 'This is the best restaurant. / She is the tallest student.' },
+        { rule: 'Edatlar (in, on, at)', example: 'in the morning / on Monday / at three o’clock' },
+        { rule: 'Miktar (some, any, a lot of)', example: 'I have some money. / Are there any eggs? / He has a lot of books.' },
+        { rule: 'Countable/Uncountable', example: 'an apple, two apples / some water, some rice' },
+        { rule: 'Must ve should', example: 'You must be careful. / You should rest.' },
+        { rule: 'Past Continuous', example: 'I was studying when you called.' },
+        { rule: 'Adverbs of frequency position', example: 'I always go to bed early.' },
+        { rule: 'Geri dönüşlü zamirler (myself, yourself)', example: 'I did it myself. / Help yourself!' }
+      ]
+    },
+    sentences: {
+      title: 'Cümle Kurma',
+      desc: 'Zamanları kullanarak cümle kur.',
+      items: [
+        { prompt: 'I / am / studying / English / now', answer: 'I am studying English now.' },
+        { prompt: 'She / visited / her grandmother / yesterday', answer: 'She visited her grandmother yesterday.' },
+        { prompt: 'We / are going to / travel / next week', answer: 'We are going to travel next week.' },
+        { prompt: 'I / will / call / you / later', answer: 'I will call you later.' },
+        { prompt: 'I / usually / drink / tea / in the morning', answer: 'I usually drink tea in the morning.' },
+        { prompt: 'This book / is / better / than that one', answer: 'This book is better than that one.' },
+        { prompt: 'I / have / some money', answer: 'I have some money.' },
+        { prompt: 'I / was studying / when / you called', answer: 'I was studying when you called.' },
+        { prompt: 'You / must / be careful', answer: 'You must be careful.' },
+        { prompt: 'Do you / want / tea / or / coffee', answer: 'Do you want tea or coffee?' },
+        { prompt: 'I / stayed home / because / it was raining', answer: 'I stayed home because it was raining.' },
+        { prompt: 'We / are meeting / my friend / tomorrow', answer: 'We are meeting my friend tomorrow.' },
+        { prompt: 'She / is / the tallest / student', answer: 'She is the tallest student.' },
+        { prompt: 'I / never / eat / fast food', answer: 'I never eat fast food.' },
+        { prompt: 'He / went / to school / yesterday', answer: 'He went to school yesterday.' }
+      ]
+    },
+    speaking: {
+      title: 'Konuşma Pratiği',
+      desc: 'Günlük konular hakkında konuş.',
+      items: [
+        { prompt: 'Geçen hafta sonu ne yaptın?', example: 'Last weekend I visited my friends and watched a movie.' },
+        { prompt: 'Hafta sonu planların neler?', example: 'I am going to go shopping and visit my family.' },
+        { prompt: 'Hava durumu hakkında konuş.', example: 'The weather is sunny today. It is going to be hot.' },
+        { prompt: 'Normal bir gününü anlat.', example: 'I usually wake up at seven, eat breakfast, and go to school.' },
+        { prompt: 'En sevdiğin yemeği anlat.', example: 'My favorite food is pizza. I like it with cheese.' },
+        { prompt: 'Nerede alışveriş yapmayı seversin?', example: 'I like shopping at the market. The vegetables are fresh.' },
+        { prompt: 'Hobilerinden bahset.', example: 'I enjoy swimming and reading books in my free time.' },
+        { prompt: 'Gelecek hafta ne yapacaksın?', example: 'Next week I am going to take an English exam.' },
+        { prompt: 'Bir arkadaşını anlat.', example: 'My friend Ali is very funny. He always makes me laugh.' },
+        { prompt: 'Şu an ne yapıyorsun?', example: 'I am talking with Aven and learning English.' }
+      ]
+    },
+    listening: {
+      title: 'Dinleme Pratiği',
+      desc: 'Aven’in söylediği cümleyi dinle, ne anladığını yaz.',
+      items: [
+        { text: 'I visited my grandmother yesterday and we cooked dinner together.', tr: 'Dün büyükannemi ziyaret ettim ve birlikte akşam yemeği pişirdik.' },
+        { text: 'We are going to travel to London next summer.', tr: 'Gelecek yaz Londra’ya seyahat edeceğiz.' },
+        { text: 'What time are you going to arrive at the airport?', tr: 'Havaalanına saat kaçta varacaksın?' },
+        { text: 'I usually drink tea in the morning before work.', tr: 'İşten önce sabahları genellikle çay içerim.' },
+        { text: 'She was studying when I called her yesterday.', tr: 'Dün onu aradığımda ders çalışıyordu.' },
+        { text: 'This restaurant is better than the one we visited last week.', tr: 'Bu restoran geçen hafta gittiğimizden daha iyi.' },
+        { text: 'I am going to meet my friend at three o’clock.', tr: 'Saat üçte arkadaşımla buluşacağım.' },
+        { text: 'You must finish your homework before you go out.', tr: 'Dışarı çıkmadan önce ödevini bitirmelisin.' }
+      ]
+    }
+  },
+};
+
+</script>
+  <script>
+// lessons-advanced.js
+// B1, B2, C1 seviyeleri - zenginleştirilmiş ders içerikleri.
+// window.ENGLISH_LESSONS üzerinden renderer.js'e bağlanır.
+
+window.ENGLISH_LESSONS.B1 = {
+  vocab: {
+    title: 'Orta Seviye Kelimeler',
+    desc: 'İş, eğitim ve günlük yaşamda kullanılan orta seviye kelimeler.',
+    items: [
+      { word: 'opportunity', tr: 'fırsat', example: 'This is a great opportunity for you.' },
+      { word: 'experience', tr: 'deneyim', example: 'I have experience in teaching.' },
+      { word: 'improve', tr: 'geliştirmek', example: 'I want to improve my English.' },
+      { word: 'decide', tr: 'karar vermek', example: 'I decided to study abroad.' },
+      { word: 'believe', tr: 'inanmak', example: 'I believe you can do it.' },
+      { word: 'suggest', tr: 'önermek', example: 'I suggest you practice every day.' },
+      { word: 'achieve', tr: 'başarmak', example: 'You can achieve your goals.' },
+      { word: 'difficult', tr: 'zor', example: 'This exercise is difficult.' },
+      { word: 'important', tr: 'önemli', example: 'It is important to study regularly.' },
+      { word: 'different', tr: 'farklı', example: 'We have different opinions.' },
+      { word: 'environment', tr: 'çevre', example: 'We must protect the environment.' },
+      { word: 'education', tr: 'eğitim', example: 'Education is the key to success.' },
+      { word: 'government', tr: 'hükümet', example: 'The government announced new policies.' },
+      { word: 'health', tr: 'sağlık', example: 'Health is more important than money.' },
+      { word: 'knowledge', tr: 'bilgi', example: 'Knowledge is power.' },
+      { word: 'language', tr: 'dil', example: 'Learning a new language is fun.' },
+      { word: 'society', tr: 'toplum', example: 'We live in a modern society.' },
+      { word: 'technology', tr: 'teknoloji', example: 'Technology changes our lives.' },
+      { word: 'culture', tr: 'kültür', example: 'I love learning about different cultures.' },
+      { word: 'success', tr: 'başarı', example: 'Hard work leads to success.' },
+      { word: 'failure', tr: 'başarısızlık', example: 'Failure is a part of learning.' },
+      { word: 'goal', tr: 'hedef', example: 'My goal is to speak English fluently.' },
+      { word: 'plan', tr: 'plan', example: 'What is your plan for the weekend?' },
+      { word: 'solution', tr: 'çözüm', example: 'We need to find a solution to this problem.' },
+      { word: 'problem', tr: 'sorun', example: 'There is a problem with my computer.' },
+      { word: 'reason', tr: 'sebep', example: 'What is the reason for your decision?' },
+      { word: 'result', tr: 'sonuç', example: 'The result of the exam was good.' },
+      { word: 'research', tr: 'araştırma', example: 'She is doing research on climate change.' },
+      { word: 'project', tr: 'proje', example: 'We are working on a new project.' },
+      { word: 'meeting', tr: 'toplantı', example: 'The meeting starts at nine.' },
+      { word: 'advice', tr: 'tavsiye', example: 'Can you give me some advice?' },
+      { word: 'opinion', tr: 'görüş', example: 'In my opinion, this is a good idea.' },
+      { word: 'decision', tr: 'karar', example: 'It was a difficult decision.' },
+      { word: 'effort', tr: 'çaba', example: 'Learning English takes effort.' },
+      { word: 'progress', tr: 'ilerleme', example: 'You are making great progress.' },
+      { word: 'habit', tr: 'alışkanlık', example: 'Reading is a good habit.' },
+      { word: 'skill', tr: 'beceri', example: 'Speaking is an important skill.' },
+      { word: 'ability', tr: 'yetenek', example: 'She has the ability to learn fast.' },
+      { word: 'challenge', tr: 'zorluk', example: 'Learning a language is a challenge.' },
+      { word: 'responsibility', tr: 'sorumluluk', example: 'It is your responsibility to study.' },
+      { word: 'confidence', tr: 'özgüven', example: 'Practice builds confidence.' },
+      { word: 'patience', tr: 'sabır', example: 'Learning takes patience.' },
+      { word: 'curiosity', tr: 'merak', example: 'Curiosity helps you learn.' },
+      { word: 'imagination', tr: 'hayal gücü', example: 'Use your imagination when writing.' },
+      { word: 'memory', tr: 'hafıza', example: 'I have a good memory for words.' },
+      { word: 'attention', tr: 'dikkat', example: 'Pay attention to the pronunciation.' },
+      { word: 'practice', tr: 'pratik', example: 'Practice makes perfect.' },
+      { word: 'review', tr: 'gözden geçirme', example: 'Review your notes every day.' },
+      { word: 'improvement', tr: 'gelişme', example: 'I can see improvement in your English.' },
+      { word: 'opportunity', tr: 'fırsat', example: 'Take every opportunity to practice.' }
+    ]
+  },
+  grammar: {
+    title: 'Orta Seviye Gramer',
+    desc: 'Koşul cümleleri, bağlaçlar ve edilgen çatı.',
+    items: [
+      { rule: 'Koşul cümleleri (If clauses) - Tip 1', example: 'If it rains, we will stay home.' },
+      { rule: 'Koşul cümleleri - Tip 2', example: 'If I were you, I would study more.' },
+      { rule: 'Bağlaçlar (although, because, so)', example: 'Although it was late, we continued. / I stayed home because it was raining.' },
+      { rule: 'Edilgen çatı (Passive voice)', example: 'The book was written by a famous author.' },
+      { rule: 'Present Perfect', example: 'I have lived here for five years. / She has finished her homework.' },
+      { rule: 'Present Perfect Continuous', example: 'I have been studying English for three years.' },
+      { rule: 'Past Continuous', example: 'I was watching TV when you called.' },
+      { rule: 'Relative clauses (who, which, that)', example: 'The man who lives next door is a doctor.' },
+      { rule: 'Gerund ve Infinitive', example: 'I enjoy reading. / I want to learn English.' },
+      { rule: 'Modal fiiller (can, could, should, must)', example: 'You should see a doctor. / I could swim when I was five.' },
+      { rule: 'Used to (eskiden)', example: 'I used to play football when I was young.' },
+      { rule: 'So / Neither', example: 'I like coffee. So do I. / I don’t like tea. Neither do I.' },
+      { rule: 'Question tags', example: 'You are tired, aren’t you? / She can swim, can’t she?' },
+      { rule: 'Present Perfect vs Simple Past', example: 'I have visited Paris. (deneyim) / I visited Paris in 2019. (belirli zaman)' },
+      { rule: 'Future forms karşılaştırma', example: 'I will help you. (anlık) / I am going to travel. (plan) / I am meeting him. (düzenleme)' },
+      { rule: 'İkinci koşul - hayali durumlar', example: 'If I had more time, I would learn guitar.' },
+      { rule: 'Reported speech (dolaylı anlatım)', example: 'She said that she was tired.' },
+      { rule: 'Wish clauses', example: 'I wish I could speak English fluently.' }
+    ]
+  },
+  sentences: {
+    title: 'Cümle Kurma',
+    desc: 'Koşul ve bağlaçlarla karmaşık cümleler kur.',
+    items: [
+      { prompt: 'If / it rains / we / will stay / home', answer: 'If it rains, we will stay home.' },
+      { prompt: 'I / stayed home / because / it was raining', answer: 'I stayed home because it was raining.' },
+      { prompt: 'I / have lived / here / for five years', answer: 'I have lived here for five years.' },
+      { prompt: 'The book / was written / by a famous author', answer: 'The book was written by a famous author.' },
+      { prompt: 'I / have been studying / English / for three years', answer: 'I have been studying English for three years.' },
+      { prompt: 'I / was watching TV / when / you called', answer: 'I was watching TV when you called.' },
+      { prompt: 'I / enjoy / reading / books', answer: 'I enjoy reading books.' },
+      { prompt: 'you / should / see / a doctor', answer: 'You should see a doctor.' },
+      { prompt: 'I / used to / play football / when I was young', answer: 'I used to play football when I was young.' },
+      { prompt: 'you / are tired / aren’t you', answer: 'You are tired, aren’t you?' },
+      { prompt: 'although / it was late / we / continued', answer: 'Although it was late, we continued.' },
+      { prompt: 'she / has finished / her homework', answer: 'She has finished her homework.' },
+      { prompt: 'the man / who lives next door / is a doctor', answer: 'The man who lives next door is a doctor.' },
+      { prompt: 'I / want / to learn / English', answer: 'I want to learn English.' },
+      { prompt: 'I / like coffee / so do I', answer: 'I like coffee. So do I.' },
+      { prompt: 'If / I were you / I would study / more', answer: 'If I were you, I would study more.' },
+      { prompt: 'I / wish / I could speak / English fluently', answer: 'I wish I could speak English fluently.' },
+      { prompt: 'she / said / that she was tired', answer: 'She said that she was tired.' },
+      { prompt: 'I / have visited / Paris / before', answer: 'I have visited Paris before.' },
+      { prompt: 'I / am going to / travel / next summer', answer: 'I am going to travel next summer.' }
+    ]
+  },
+  speaking: {
+    title: 'Konuşma Pratiği',
+    desc: 'Fikirlerini ifade et ve tartış.',
+    items: [
+      { prompt: 'Gelecek planların hakkında konuş.', example: 'I am planning to improve my English and find a better job.' },
+      { prompt: 'Bir konu hakkında fikrini söyle.', example: 'In my opinion, learning a language opens many doors.' },
+      { prompt: 'Bir deneyimini anlat.', example: 'Last year I traveled to Istanbul and it was an amazing experience.' },
+      { prompt: 'Teknolojinin hayatına etkisini anlat.', example: 'Technology has changed the way I study and communicate with my friends.' },
+      { prompt: 'Bir soruna çözüm öner.', example: 'One solution to the traffic problem would be to improve public transport.' },
+      { prompt: 'Geçmişte bir alışkanlığını anlat.', example: 'I used to play video games every day, but now I prefer reading.' },
+      { prompt: 'Bir kitap veya film hakkında konuş.', example: 'I recently read a book about space exploration. It was fascinating.' },
+      { prompt: 'Çevre sorunları hakkında konuş.', example: 'We should recycle more to protect the environment.' },
+      { prompt: 'Bir hayalini anlat.', example: 'I wish I could travel around the world and learn about different cultures.' },
+      { prompt: 'Eğitimin önemi hakkında konuş.', example: 'Education is very important because it gives us knowledge and skills.' },
+      { prompt: 'Sağlıklı yaşam hakkında konuş.', example: 'I think we should eat healthy food and exercise regularly.' },
+      { prompt: 'Bir kararını ve sonucunu anlat.', example: 'I decided to study English seriously, and now I can speak much better.' }
+    ]
+  },
+  listening: {
+    title: 'Dinleme Pratiği',
+    desc: 'Aven’in söylediği cümleyi dinle, ne anladığını yaz.',
+    items: [
+      { text: 'If you study regularly, you will improve your English quickly.', tr: 'Düzenli çalışırsan, İngilizceni hızlıca geliştirirsin.' },
+      { text: 'Although it was raining, we decided to go for a walk.', tr: 'Yağmur yağıyor olmasına rağmen yürüyüşe çıkmaya karar verdik.' },
+      { text: 'I have been learning English for three years now.', tr: 'Üç yıldır İngilizce öğreniyorum.' },
+      { text: 'I was watching TV when you called me last night.', tr: 'Dün gece beni aradığında televizyon izliyordum.' },
+      { text: 'The book was written by a famous author from England.', tr: 'Kitap İngiltere’den ünlü bir yazar tarafından yazıldı.' },
+      { text: 'You should see a doctor if you feel sick.', tr: 'Kendini hasta hissediyorsan bir doktora görünmelisin.' },
+      { text: 'I used to play football when I was young, but now I prefer swimming.', tr: 'Gençken futbol oynardım, ama şimdi yüzmeyi tercih ediyorum.' },
+      { text: 'Although the exam was difficult, I think I passed it.', tr: 'Sınav zor olmasına rağmen geçtiğimi düşünüyorum.' },
+      { text: 'If I had more time, I would learn to play the guitar.', tr: 'Daha fazla zamanım olsaydı, gitar çalmayı öğrenirdim.' },
+      { text: 'She said that she had already finished her homework.', tr: 'Ödevini çoktan bitirdiğini söyledi.' },
+      { text: 'I have visited Paris twice, but I have never been to London.', tr: 'Paris’i iki kez ziyaret ettim, ama Londra’ya hiç gitmedim.' },
+      { text: 'We should protect the environment for future generations.', tr: 'Gelecek nesiller için çevreyi korumalıyız.' }
+    ]
+  },
+  phrasal: {
+    title: 'Phrasal Verbs',
+    desc: 'En yaygın phrasal verb’ler ve kullanımları.',
+    items: [
+      { word: 'give up', tr: 'vazgeçmek', example: 'Don’t give up on your dreams.' },
+      { word: 'look after', tr: 'ilgilenmek, bakmak', example: 'She looks after her little brother.' },
+      { word: 'look for', tr: 'aramak', example: 'I am looking for my keys.' },
+      { word: 'turn on', tr: 'açmak (cihaz)', example: 'Please turn on the lights.' },
+      { word: 'turn off', tr: 'kapatmak (cihaz)', example: 'Turn off your phone in class.' },
+      { word: 'put on', tr: 'giymek', example: 'Put on your jacket, it is cold.' },
+      { word: 'take off', tr: 'çıkarmak / havalanmak', example: 'Take off your shoes. / The plane took off.' },
+      { word: 'get up', tr: 'kalkmak', example: 'I get up at seven every day.' },
+      { word: 'wake up', tr: 'uyanmak', example: 'I wake up before my alarm.' },
+      { word: 'come back', tr: 'geri dönmek', example: 'When will you come back?' },
+      { word: 'go out', tr: 'dışarı çıkmak', example: 'We go out every Friday night.' },
+      { word: 'find out', tr: 'öğrenmek, keşfetmek', example: 'I found out the truth yesterday.' },
+      { word: 'work out', tr: 'egzersiz yapmak / çözmek', example: 'I work out three times a week.' },
+      { word: 'run out of', tr: 'tükenmek', example: 'We ran out of milk.' },
+      { word: 'carry on', tr: 'devam etmek', example: 'Carry on with your work.' },
+      { word: 'get along with', tr: 'iyi geçinmek', example: 'I get along well with my classmates.' },
+      { word: 'put off', tr: 'ertelemek', example: 'Don’t put off your homework.' },
+      { word: 'take up', tr: 'başlamak (hobi)', example: 'I took up painting last year.' },
+      { word: 'look forward to', tr: 'dört gözle beklemek', example: 'I look forward to seeing you.' },
+      { word: 'break down', tr: 'bozulmak', example: 'My car broke down on the way.' }
+    ]
+  }
+};
+
+window.ENGLISH_LESSONS.B2 = {
+  vocab: {
+    title: 'İleri Kelimeler',
+    desc: 'Akademik ve profesyonel ortamlarda kullanılan kelimeler.',
+    items: [
+      { word: 'significant', tr: 'önemli, kayda değer', example: 'There was a significant improvement in his grades.' },
+      { word: 'consequence', tr: 'sonuç', example: 'Every decision has consequences.' },
+      { word: 'approach', tr: 'yaklaşım', example: 'We need a new approach to this problem.' },
+      { word: 'efficient', tr: 'verimli', example: 'This method is more efficient.' },
+      { word: 'assume', tr: 'varsaymak', example: 'I assume you already know the answer.' },
+      { word: 'contribute', tr: 'katkıda bulunmak', example: 'Everyone can contribute to the project.' },
+      { word: 'establish', tr: 'kurmak, tesis etmek', example: 'They established a new company.' },
+      { word: 'maintain', tr: 'sürdürmek', example: 'It is important to maintain a healthy lifestyle.' },
+      { word: 'obtain', tr: 'elde etmek', example: 'You need to obtain a visa to travel.' },
+      { word: 'require', tr: 'gerektirmek', example: 'This job requires experience.' },
+      { word: 'analyze', tr: 'analiz etmek', example: 'We need to analyze the data carefully.' },
+      { word: 'evaluate', tr: 'değerlendirmek', example: 'The teacher will evaluate our projects.' },
+      { word: 'implement', tr: 'uygulamak', example: 'The company will implement the new policy.' },
+      { word: 'facilitate', tr: 'kolaylaştırmak', example: 'Technology facilitates communication.' },
+      { word: 'inevitable', tr: 'kaçınılmaz', example: 'Change is inevitable in any organization.' },
+      { word: 'mitigate', tr: 'hafifletmek', example: 'We must mitigate the risks involved.' },
+      { word: 'phenomenon', tr: 'olgu, fenomen', example: 'Global warming is a global phenomenon.' },
+      { word: 'sophisticated', tr: 'gelişmiş, karmaşık', example: 'This is a sophisticated piece of technology.' },
+      { word: 'ambiguous', tr: 'belirsiz, muğlak', example: 'The instructions were ambiguous and confusing.' },
+      { word: 'consequently', tr: 'sonuç olarak', example: 'He was late; consequently, he missed the meeting.' },
+      { word: 'nevertheless', tr: 'yine de', example: 'It was difficult; nevertheless, we succeeded.' },
+      { word: 'furthermore', tr: 'ayrıca, dahası', example: 'Furthermore, we need to consider the costs.' },
+      { word: 'therefore', tr: 'bu nedenle', example: 'He was sick; therefore, he stayed home.' },
+      { word: 'however', tr: 'ancak, bununla birlikte', example: 'The plan was good; however, it failed.' },
+      { word: 'moreover', tr: 'üstelik', example: 'Moreover, the results were excellent.' },
+      { word: 'whereas', tr: 'oysa, halbuki', example: 'He is rich, whereas his brother is poor.' },
+      { word: 'despite', tr: 'rağmen', example: 'Despite the rain, we went out.' },
+      { word: 'although', tr: 'rağmen, -e karşın', example: 'Although it was late, we continued.' },
+      { word: 'due to', tr: 'nedeniyle', example: 'The flight was delayed due to bad weather.' },
+      { word: 'in terms of', tr: 'açısından', example: 'In terms of cost, this is better.' },
+      { word: 'on the other hand', tr: 'diğer yandan', example: 'On the other hand, it is very expensive.' },
+      { word: 'in conclusion', tr: 'sonuç olarak', example: 'In conclusion, I believe we should proceed.' },
+      { word: 'to sum up', tr: 'özetlemek gerekirse', example: 'To sum up, the project was a success.' },
+      { word: 'in addition', tr: 'ek olarak', example: 'In addition, we need more staff.' },
+      { word: 'as a result', tr: 'sonuç olarak', example: 'As a result, sales increased.' },
+      { word: 'for instance', tr: 'örneğin', example: 'For instance, many people use smartphones.' },
+      { word: 'in other words', tr: 'başka bir deyişle', example: 'In other words, we need to work harder.' },
+      { word: 'it is worth noting', tr: 'belirtmekte fayda var', example: 'It is worth noting that prices have risen.' },
+      { word: 'to a certain extent', tr: 'bir dereceye kadar', example: 'To a certain extent, I agree with you.' },
+      { word: 'in the long run', tr: 'uzun vadede', example: 'In the long run, this will pay off.' }
+    ]
+  },
+  grammar: {
+    title: 'İleri Gramer',
+    desc: 'Karmaşık cümle yapıları ve modal fiiller.',
+    items: [
+      { rule: 'Modal fiiller (must, should, might)', example: 'You must finish this today. / She might come later.' },
+      { rule: 'Relative clauses', example: 'The man who lives next door is a doctor.' },
+      { rule: 'Reported speech', example: 'She said that she was tired.' },
+      { rule: 'Third conditional', example: 'If I had studied harder, I would have passed the exam.' },
+      { rule: 'Mixed conditionals', example: 'If I had studied medicine, I would be a doctor now.' },
+      { rule: 'Passive voice - tüm zamanlar', example: 'The house was built in 1990. / The report has been written.' },
+      { rule: 'Causative (have/get something done)', example: 'I had my car repaired. / She got her hair cut.' },
+      { rule: 'Gerund vs Infinitive - detaylı', example: 'I stopped smoking. / I stopped to smoke.' },
+      { rule: 'Inversion (devrik cümle)', example: 'Not only did he finish early, but he also helped others.' },
+      { rule: 'Cleft sentences', example: 'What I need is more time to complete this.' },
+      { rule: 'Subjunctive mood', example: 'I suggest that he be given another chance.' },
+      { rule: 'Future perfect', example: 'By 2030, I will have graduated from university.' },
+      { rule: 'Future continuous', example: 'This time next week, I will be flying to London.' },
+      { rule: 'Past perfect', example: 'When I arrived, the movie had already started.' },
+      { rule: 'Wish + past perfect', example: 'I wish I had studied harder for the exam.' },
+      { rule: 'Phrasal verbs - ayrılabilir/ayrılamaz', example: 'Turn off the TV. / Turn the TV off. / Look after the children.' },
+      { rule: 'Linking words (however, therefore, moreover)', example: 'The plan was good; however, it failed.' },
+      { rule: 'Emphatic structures', example: 'It was John who broke the window.' }
+    ]
+  },
+  sentences: {
+    title: 'Cümle Kurma',
+    desc: 'Karmaşık yapılarla cümleler kur.',
+    items: [
+      { prompt: 'The man / who lives next door / is a doctor', answer: 'The man who lives next door is a doctor.' },
+      { prompt: 'If I had studied harder / I would have passed / the exam', answer: 'If I had studied harder, I would have passed the exam.' },
+      { prompt: 'She said / that she was tired', answer: 'She said that she was tired.' },
+      { prompt: 'You must / finish this / today', answer: 'You must finish this today.' },
+      { prompt: 'I / had my car / repaired', answer: 'I had my car repaired.' },
+      { prompt: 'Not only / did he finish early / but he also helped others', answer: 'Not only did he finish early, but he also helped others.' },
+      { prompt: 'What I need / is more time / to complete this', answer: 'What I need is more time to complete this.' },
+      { prompt: 'I suggest / that he be given / another chance', answer: 'I suggest that he be given another chance.' },
+      { prompt: 'By 2030 / I will have graduated / from university', answer: 'By 2030, I will have graduated from university.' },
+      { prompt: 'When I arrived / the movie / had already started', answer: 'When I arrived, the movie had already started.' },
+      { prompt: 'I wish / I had studied harder / for the exam', answer: 'I wish I had studied harder for the exam.' },
+      { prompt: 'The plan was good / however / it failed', answer: 'The plan was good; however, it failed.' },
+      { prompt: 'It was John / who broke / the window', answer: 'It was John who broke the window.' },
+      { prompt: 'I stopped / smoking / last year', answer: 'I stopped smoking last year.' },
+      { prompt: 'This time next week / I will be flying / to London', answer: 'This time next week, I will be flying to London.' },
+      { prompt: 'The house / was built / in 1990', answer: 'The house was built in 1990.' },
+      { prompt: 'If I had studied medicine / I would be / a doctor now', answer: 'If I had studied medicine, I would be a doctor now.' },
+      { prompt: 'She got / her hair / cut', answer: 'She got her hair cut.' },
+      { prompt: 'Despite / the rain / we went out', answer: 'Despite the rain, we went out.' },
+      { prompt: 'He was late / consequently / he missed the meeting', answer: 'He was late; consequently, he missed the meeting.' }
+    ]
+  },
+  speaking: {
+    title: 'Konuşma Pratiği',
+    desc: 'Karmaşık konular hakkında akıcı konuş.',
+    items: [
+      { prompt: 'Teknolojinin hayatımıza etkisi hakkında konuş.', example: 'Technology has significantly changed the way we communicate and work.' },
+      { prompt: 'Bir soruna çözüm öner.', example: 'One approach to this problem would be to improve communication between teams.' },
+      { prompt: 'Geçmişte bir kararın sonuçlarını anlat.', example: 'If I had chosen a different career, my life would have been very different.' },
+      { prompt: 'Bir tartışmada iki tarafı da savun.', example: 'On the one hand, technology makes life easier. On the other hand, it can be addictive.' },
+      { prompt: 'Bir konuyu analiz et.', example: 'The main causes of this problem are economic and social factors.' },
+      { prompt: 'Gelecek hakkında tahmin yürüt.', example: 'By 2050, technology will have transformed education completely.' },
+      { prompt: 'Bir deneyiminden ders çıkar.', example: 'I learned that failure is not the end; it is an opportunity to improve.' },
+      { prompt: 'Bir konuda ikna edici konuş.', example: 'I strongly believe that we should invest more in renewable energy.' },
+      { prompt: 'Bir kitap veya makaleyi özetle.', example: 'The article argues that social media has both positive and negative effects.' },
+      { prompt: 'Bir karşılaştırma yap.', example: 'Whereas traditional education focuses on memorization, modern education emphasizes critical thinking.' },
+      { prompt: 'Bir sorunun çözümünü tartış.', example: 'To mitigate the effects of climate change, we need international cooperation.' },
+      { prompt: 'Bir hipotez kur ve tartış.', example: 'If we had started earlier, we would have avoided many of these problems.' }
+    ]
+  },
+  listening: {
+    title: 'Dinleme Pratiği',
+    desc: 'Aven’in söylediği cümleyi dinle, ne anladığını yaz.',
+    items: [
+      { text: 'The man who lives next door has been working as a doctor for twenty years.', tr: 'Yan tarafta yaşayan adam yirmi yıldır doktor olarak çalışıyor.' },
+      { text: 'If we had started the project earlier, we would have finished it by now.', tr: 'Projeye daha erken başlasaydık, şimdiye kadar bitirmiş olurduk.' },
+      { text: 'She mentioned that the meeting had been postponed until next week.', tr: 'Toplantının gelecek haftaya ertelendiğini söyledi.' },
+      { text: 'Not only did he finish the report, but he also prepared the presentation.', tr: 'Sadece raporu bitirmekle kalmadı, sunumu da hazırladı.' },
+      { text: 'By the time we arrived, the concert had already started.', tr: 'Biz vardığımızda konser çoktan başlamıştı.' },
+      { text: 'Despite the difficulties, the team managed to complete the project on time.', tr: 'Zorluklara rağmen ekip projeyi zamanında tamamlamayı başardı.' },
+      { text: 'I had my car repaired yesterday, so it should be fine now.', tr: 'Dün arabamı tamir ettirdim, bu yüzden artık sorun olmamalı.' },
+      { text: 'If I had studied medicine, I would be a doctor now.', tr: 'Tıp okusaydım, şimdi doktor olurdum.' },
+      { text: 'The report has been written by the research team and will be published soon.', tr: 'Rapor araştırma ekibi tarafından yazıldı ve yakında yayınlanacak.' },
+      { text: 'I wish I had taken that opportunity when it was offered.', tr: 'Keşke o fırsat sunulduğunda değerlendirseydim.' },
+      { text: 'This time next week, we will be flying to New York.', tr: 'Gelecek hafta bu zamanlar New York’a uçuyor olacağız.' },
+      { text: 'It was John who suggested the new approach to the problem.', tr: 'Soruna yeni yaklaşımı öneren John’du.' }
+    ]
+  },
+  idioms: {
+    title: 'İdiomlar',
+    desc: 'En yaygın İngilizce idiomlar ve anlamları.',
+    items: [
+      { word: 'break the ice', tr: 'buzları eritmek', example: 'A funny joke can break the ice.' },
+      { word: 'piece of cake', tr: 'çok kolay', example: 'The exam was a piece of cake.' },
+      { word: 'hit the books', tr: 'ders çalışmak', example: 'I need to hit the books for the exam.' },
+      { word: 'under the weather', tr: 'hasta, keyifsiz', example: 'I am feeling under the weather today.' },
+      { word: 'once in a blue moon', tr: 'çok nadir', example: 'I see him once in a blue moon.' },
+      { word: 'cost an arm and a leg', tr: 'çok pahalı', example: 'That car costs an arm and a leg.' },
+      { word: 'let the cat out of the bag', tr: 'sırrı açığa vurmak', example: 'He let the cat out of the bag about the surprise.' },
+      { word: 'burn the midnight oil', tr: 'gece geç saatlere kadar çalışmak', example: 'I burned the midnight oil to finish the project.' },
+      { word: 'a blessing in disguise', tr: 'görünüşte kötü ama aslında iyi olan şey', example: 'Losing that job was a blessing in disguise.' },
+      { word: 'the ball is in your court', tr: 'sıra sende', example: 'I have done my part; the ball is in your court.' },
+      { word: 'bite the bullet', tr: 'dişini sıkıp katlanmak', example: 'I had to bite the bullet and apologize.' },
+      { word: 'hit the nail on the head', tr: 'tam isabet etmek', example: 'You hit the nail on the head with that answer.' },
+      { word: 'spill the beans', tr: 'sırrı ifşa etmek', example: 'Come on, spill the beans about the party!' },
+      { word: 'take it with a grain of salt', tr: 'şüpheyle karşılamak', example: 'Take his advice with a grain of salt.' },
+      { word: 'the best of both worlds', tr: 'iki dünyanın da en iyisi', example: 'Working from home gives me the best of both worlds.' }
+    ]
+  }
+};
+
+window.ENGLISH_LESSONS.C1 = {
+  vocab: {
+    title: 'Akademik Kelimeler',
+    desc: 'Akademik ve profesyonel yazılarda kullanılan ileri düzey kelimeler.',
+    items: [
+      { word: 'comprehensive', tr: 'kapsamlı', example: 'We need a comprehensive review of the policy.' },
+      { word: 'substantial', tr: 'önemli, kayda değer', example: 'There was a substantial increase in sales.' },
+      { word: 'preliminary', tr: 'ön, geçici', example: 'The preliminary results are promising.' },
+      { word: 'subsequent', tr: 'sonraki, müteakip', example: 'Subsequent studies confirmed the findings.' },
+      { word: 'controversial', tr: 'tartışmalı', example: 'The new law is highly controversial.' },
+      { word: 'ambiguous', tr: 'belirsiz, muğlak', example: 'The statement was deliberately ambiguous.' },
+      { word: 'coherent', tr: 'tutarlı', example: 'She presented a coherent argument.' },
+      { word: 'feasible', tr: 'uygulanabilir', example: 'The plan is not feasible within our budget.' },
+      { word: 'inevitable', tr: 'kaçınılmaz', example: 'Change is inevitable in any organization.' },
+      { word: 'intrinsic', tr: 'içsel, doğal', example: 'Learning has intrinsic value.' },
+      { word: 'notable', tr: 'kayda değer', example: 'She made a notable contribution to the field.' },
+      { word: 'prevalent', tr: 'yaygın', example: 'This problem is prevalent in many countries.' },
+      { word: 'profound', tr: 'derin', example: 'The discovery had a profound impact on science.' },
+      { word: 'rigorous', tr: 'titiz, sıkı', example: 'The research underwent rigorous testing.' },
+      { word: 'sustainable', tr: 'sürdürülebilir', example: 'We need sustainable solutions to climate change.' },
+      { word: 'tangible', tr: 'somut', example: 'We need tangible results, not just promises.' },
+      { word: 'ubiquitous', tr: 'her yerde bulunan', example: 'Smartphones have become ubiquitous.' },
+      { word: 'viable', tr: 'uygulanabilir, yaşayabilir', example: 'Is this a viable business model?' },
+      { word: 'advocate', tr: 'savunmak / savunucu', example: 'She advocates for environmental protection.' },
+      { word: 'articulate', tr: 'açıkça ifade etmek', example: 'He articulated his ideas clearly.' },
+      { word: 'comprehend', tr: 'anlamak, kavramak', example: 'It is difficult to comprehend the scale of the problem.' },
+      { word: 'conceive', tr: 'tasarlamak, düşünmek', example: 'It is hard to conceive of a world without internet.' },
+      { word: 'deduce', tr: 'çıkarım yapmak', example: 'From the evidence, we can deduce the cause.' },
+      { word: 'elucidate', tr: 'açıklamak, aydınlatmak', example: 'The professor elucidated the complex theory.' },
+      { word: 'encompass', tr: 'kapsamak', example: 'The course encompasses all aspects of the subject.' },
+      { word: 'exemplify', tr: 'örneklemek', example: 'This case exemplifies the challenges we face.' },
+      { word: 'hypothesize', tr: 'hipotez kurmak', example: 'Scientists hypothesize that the universe is expanding.' },
+      { word: 'imply', tr: 'ima etmek', example: 'His silence implies agreement.' },
+      { word: 'infer', tr: 'çıkarım yapmak', example: 'We can infer from the data that sales are rising.' },
+      { word: 'justify', tr: 'haklı çıkarmak', example: 'You need to justify your decision.' },
+      { word: 'postulate', tr: 'varsaymak, öne sürmek', example: 'The theory postulates that all matter is made of atoms.' },
+      { word: 'quantify', tr: 'ölçmek, nicelendirmek', example: 'It is difficult to quantify the benefits.' },
+      { word: 'scrutinize', tr: 'dikkatle incelemek', example: 'The committee scrutinized every detail.' },
+      { word: 'substantiate', tr: 'doğrulamak, kanıtlamak', example: 'You need to substantiate your claims with evidence.' },
+      { word: 'undermine', tr: 'zayıflatmak', example: 'The scandal undermined public trust.' },
+      { word: 'validate', tr: 'doğrulamak', example: 'The results validate our hypothesis.' },
+      { word: 'criteria', tr: 'kriterler', example: 'What are the criteria for selection?' },
+      { word: 'framework', tr: 'çerçeve', example: 'We need a framework for decision-making.' },
+      { word: 'paradigm', tr: 'paradigma, model', example: 'This represents a paradigm shift in thinking.' },
+      { word: 'advocate', tr: 'savunucu', example: 'She is a strong advocate for human rights.' }
+    ]
+  },
+  grammar: {
+    title: 'İleri Düzey Gramer',
+    desc: 'Akademik ve profesyonel İngilizce için ileri gramer yapıları.',
+    items: [
+      { rule: 'Inversion (devrik cümle)', example: 'Not only did he finish early, but he also helped others.' },
+      { rule: 'Cleft sentences', example: 'What I need is more time to complete this.' },
+      { rule: 'Subjunctive mood', example: 'I suggest that he be given another chance.' },
+      { rule: 'Mixed conditionals', example: 'If I had studied medicine, I would be a doctor now.' },
+      { rule: 'Future perfect continuous', example: 'By next year, I will have been working here for ten years.' },
+      { rule: 'Past perfect continuous', example: 'I had been waiting for an hour when she arrived.' },
+      { rule: 'Causative passive', example: 'I had my car repaired. / She got her hair cut.' },
+      { rule: 'Gerund vs Infinitive - detaylı', example: 'I stopped smoking. / I stopped to smoke.' },
+      { rule: 'Phrasal verbs - ayrılabilir/ayrılamaz', example: 'Turn off the TV. / Turn the TV off. / Look after the children.' },
+      { rule: 'Linking words (however, therefore, moreover)', example: 'The plan was good; however, it failed.' },
+      { rule: 'Emphatic structures', example: 'It was John who broke the window.' },
+      { rule: 'Reduced relative clauses', example: 'The man standing over there is my uncle.' },
+      { rule: 'Participle clauses', example: 'Having finished the work, she went home.' },
+      { rule: 'Conditional without if', example: 'Had I known, I would have come earlier.' },
+      { rule: 'Wish + past perfect', example: 'I wish I had studied harder for the exam.' },
+      { rule: 'It is time + past simple', example: 'It is time we went home.' },
+      { rule: 'Would rather', example: 'I would rather you didn’t tell anyone.' },
+      { rule: 'As if / as though', example: 'He talks as if he knew everything.' }
+    ]
+  },
+  sentences: {
+    title: 'Cümle Kurma',
+    desc: 'Akademik düzeyde karmaşık cümleler kur.',
+    items: [
+      { prompt: 'Not only / did he finish early / but he also helped others', answer: 'Not only did he finish early, but he also helped others.' },
+      { prompt: 'What I need / is more time / to complete this', answer: 'What I need is more time to complete this.' },
+      { prompt: 'I suggest / that he be given / another chance', answer: 'I suggest that he be given another chance.' },
+      { prompt: 'If I had studied medicine / I would be / a doctor now', answer: 'If I had studied medicine, I would be a doctor now.' },
+      { prompt: 'By next year / I will have been working / here for ten years', answer: 'By next year, I will have been working here for ten years.' },
+      { prompt: 'I had been waiting / for an hour / when she arrived', answer: 'I had been waiting for an hour when she arrived.' },
+      { prompt: 'I had / my car / repaired', answer: 'I had my car repaired.' },
+      { prompt: 'I stopped / smoking / last year', answer: 'I stopped smoking last year.' },
+      { prompt: 'It was John / who broke / the window', answer: 'It was John who broke the window.' },
+      { prompt: 'The man / standing over there / is my uncle', answer: 'The man standing over there is my uncle.' },
+      { prompt: 'Having finished / the work / she went home', answer: 'Having finished the work, she went home.' },
+      { prompt: 'Had I known / I would have come / earlier', answer: 'Had I known, I would have come earlier.' },
+      { prompt: 'I wish / I had studied harder / for the exam', answer: 'I wish I had studied harder for the exam.' },
+      { prompt: 'It is time / we went / home', answer: 'It is time we went home.' },
+      { prompt: 'I would rather / you didn’t tell / anyone', answer: 'I would rather you didn’t tell anyone.' },
+      { prompt: 'He talks / as if / he knew everything', answer: 'He talks as if he knew everything.' },
+      { prompt: 'The plan was good / however / it failed', answer: 'The plan was good; however, it failed.' },
+      { prompt: 'She got / her hair / cut', answer: 'She got her hair cut.' },
+      { prompt: 'Despite / the rain / we went out', answer: 'Despite the rain, we went out.' },
+      { prompt: 'He was late / consequently / he missed the meeting', answer: 'He was late; consequently, he missed the meeting.' }
+    ]
+  },
+  speaking: {
+    title: 'Konuşma Pratiği',
+    desc: 'Akademik ve profesyonel konular hakkında akıcı ve ikna edici konuş.',
+    items: [
+      { prompt: 'Bir konuyu kapsamlı şekilde analiz et.', example: 'A comprehensive analysis of the issue reveals multiple underlying causes.' },
+      { prompt: 'Bir tez öne sür ve savun.', example: 'I argue that education should be free for everyone because it benefits society as a whole.' },
+      { prompt: 'Bir tartışmada karşıt görüşü çürüt.', example: 'While some may argue that technology isolates us, I believe it actually connects us more deeply.' },
+      { prompt: 'Bir araştırma bulgusunu sun.', example: 'The research indicates a significant correlation between sleep and academic performance.' },
+      { prompt: 'Bir kavramı açıkla.', example: 'Sustainability means meeting our needs without compromising the ability of future generations.' },
+      { prompt: 'Bir kararın gerekçesini açıkla.', example: 'I decided to pursue this path because it aligns with my long-term goals and values.' },
+      { prompt: 'Bir hipotezi tartış.', example: 'If we assume that consumer behavior drives production, then changing habits can reduce waste.' },
+      { prompt: 'Bir metni eleştirel değerlendir.', example: 'While the author makes a compelling argument, the evidence is somewhat limited.' },
+      { prompt: 'Bir sorunun çözümünü öner.', example: 'To address this issue, we need a multi-faceted approach involving education, policy, and community engagement.' },
+      { prompt: 'Bir karşılaştırma yap.', example: 'Whereas traditional methods focus on memorization, modern approaches emphasize critical thinking and application.' },
+      { prompt: 'Bir gelecek senaryosu kur.', example: 'By 2050, if current trends continue, we will have transformed our energy systems completely.' },
+      { prompt: 'Bir konuda ikna edici bir sunum yap.', example: 'I strongly believe that investing in renewable energy is not just an option but a necessity for our future.' }
+    ]
+  },
+  listening: {
+    title: 'Dinleme Pratiği',
+    desc: 'Aven’in söylediği cümleyi dinle, ne anladığını yaz.',
+    items: [
+      { text: 'A comprehensive analysis of the data reveals a significant correlation between the two variables.', tr: 'Verilerin kapsamlı bir analizi, iki değişken arasında önemli bir korelasyon olduğunu ortaya koyuyor.' },
+      { text: 'Had I known about the meeting earlier, I would have prepared a better presentation.', tr: 'Toplantıyı daha önce bilseydim, daha iyi bir sunum hazırlardım.' },
+      { text: 'The research, which was conducted over five years, has been published in a prestigious journal.', tr: 'Beş yıl boyunca yürütülen araştırma, prestijli bir dergide yayınlandı.' },
+      { text: 'Not only does she speak three languages, but she also teaches them effectively.', tr: 'Sadece üç dil konuşmakla kalmıyor, aynı zamanda onları etkili bir şekilde öğretiyor.' },
+      { text: 'It is worth noting that the results may vary depending on the methodology used.', tr: 'Sonuçların kullanılan metodolojiye bağlı olarak değişebileceğini belirtmekte fayda var.' },
+      { text: 'Having completed the initial phase, the team is now moving on to the implementation stage.', tr: 'İlk aşamayı tamamlayan ekip, şimdi uygulama aşamasına geçiyor.' },
+      { text: 'The government has implemented several measures to mitigate the effects of climate change.', tr: 'Hükümet, iklim değişikliğinin etkilerini hafifletmek için birçok önlem uyguladı.' },
+      { text: 'I would rather you didn’t share this information with anyone else.', tr: 'Bu bilgiyi başka kimseyle paylaşmamanı tercih ederim.' },
+      { text: 'The findings substantiate the hypothesis that early intervention improves outcomes.', tr: 'Bulgular, erken müdahalenin sonuçları iyileştirdiği hipotezini doğruluyor.' },
+      { text: 'Despite the initial setbacks, the project ultimately proved to be a resounding success.', tr: 'İlk aksiliklere rağmen, proje sonunda büyük bir başarı oldu.' },
+      { text: 'It is time we reconsidered our approach to this long-standing problem.', tr: 'Bu köklü soruna yaklaşımımızı yeniden gözden geçirmemizin zamanı geldi.' },
+      { text: 'The professor elucidated the complex theory with a series of practical examples.', tr: 'Profesör, karmaşık teoriyi bir dizi pratik örnekle açıkladı.' }
+    ]
+  },
+  idioms: {
+    title: 'İleri İdiomlar',
+    desc: 'Akademik ve profesyonel ortamlarda kullanılan ileri idiomlar.',
+    items: [
+      { word: 'a double-edged sword', tr: 'iki ucu keskin bıçak', example: 'Social media is a double-edged sword.' },
+      { word: 'the tip of the iceberg', tr: 'buzdağının görünen kısmı', example: 'These problems are just the tip of the iceberg.' },
+      { word: 'a blessing in disguise', tr: 'görünüşte kötü ama aslında iyi olan', example: 'Losing that job was a blessing in disguise.' },
+      { word: 'to play devil’s advocate', tr: 'karşıt görüşü savunmak', example: 'Let me play devil’s advocate for a moment.' },
+      { word: 'to be on the same page', tr: 'aynı fikirde olmak', example: 'We need to be on the same page before proceeding.' },
+      { word: 'to think outside the box', tr: 'kalıpların dışında düşünmek', example: 'We need to think outside the box to solve this.' },
+      { word: 'to go the extra mile', tr: 'fazladan çaba göstermek', example: 'She always goes the extra mile for her clients.' },
+      { word: 'to be in the same boat', tr: 'aynı durumda olmak', example: 'We are all in the same boat during this crisis.' },
+      { word: 'to cut corners', tr: 'kestirmeden gitmek, hile yapmak', example: 'Don’t cut corners on quality.' },
+      { word: 'to be up in the air', tr: 'belirsiz olmak', example: 'Our plans are still up in the air.' },
+      { word: 'to call it a day', tr: 'günü bitirmek', example: 'Let’s call it a day and continue tomorrow.' },
+      { word: 'to be over the moon', tr: 'çok mutlu olmak', example: 'She was over the moon about her exam results.' },
+      { word: 'to be a piece of cake', tr: 'çok kolay olmak', example: 'The interview was a piece of cake.' },
+      { word: 'to be in hot water', tr: 'başı belada olmak', example: 'He is in hot water with his boss.' },
+      { word: 'to be on cloud nine', tr: 'çok mutlu olmak', example: 'He was on cloud nine after winning the award.' }
+    ]
+  }
+};
+
+</script>
+  <script>
+// renderer.js
+// İngilizce Öğretmeni Aven - arayüz mantığı.
+// Seviyeye (A1-C1) göre ders modülleri sunar, Aven robot ile sohbet ve
+// sesli konuşma pratiği yapar. AI köprüsü main.js üzerinden Groq API'ye bağlanır.
+// Android (Capacitor) ortamında window.ogretmenAPI yoksa doğrudan HTTP ile çalışır.
+
+// ---------------------------------------------------------------
+// 0.5 ANDROID FALLBACK (Capacitor / WebView)
+// ---------------------------------------------------------------
+if (!window.ogretmenAPI) {
+  const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+  const GROQ_TRANSCRIBE_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
+  const GROQ_MODEL = 'openai/gpt-oss-20b';
+  const KEY_STORE = 'ingilizce-ogretmeni-groq-key';
+
+  function getKey() {
+    try { return localStorage.getItem(KEY_STORE) || ''; } catch (e) { return ''; }
+  }
+
+  window.ogretmenAPI = {
+    speak(text, lang) {
+      const rate = parseFloat(localStorage.getItem('aven-rate')) || 1.05;
+      const pitch = parseFloat(localStorage.getItem('aven-pitch')) || 1.0;
+      const useLang = lang || voiceLanguage;
+      const doWebSpeak = () => {
+        try {
+          if (!window.speechSynthesis) return;
+          const synth = window.speechSynthesis;
+          synth.cancel();
+          // İngilizce örnekler genelde tırnak içinde gelir -> onları en-US ile oku,
+          // kalan açıklamayı ana dille (tr-TR) oku. Böylece İngilizce kelimeler
+          // Türkçe telaffuzla okunmaz, konuşma akıcı olur.
+          const parts = [];
+          const re = /"([^"]*)"|'([^']*)'|“([^”]*)”/g;
+          let last = 0, m;
+          while ((m = re.exec(text)) !== null) {
+            if (m.index > last) parts.push({ t: text.slice(last, m.index), lang: useLang });
+            const q = m[1] ?? m[2] ?? m[3];
+            if (q && q.trim()) parts.push({ t: q, lang: 'en-US' });
+            last = re.lastIndex;
+          }
+          if (last < text.length) parts.push({ t: text.slice(last), lang: useLang });
+          if (parts.length === 0) parts.push({ t: text, lang: useLang });
+          for (const p of parts) {
+            if (!p.t.trim()) continue;
+            const u = new SpeechSynthesisUtterance(p.t);
+            u.lang = p.lang; u.rate = rate; u.pitch = pitch;
+            synth.speak(u);
+          }
+        } catch (e) { }
+      };
+      // Web Speech her ortamda (tarayıcı + Android WebView + Capacitor) çalışır.
+      // Capacitor native plugin'e güvenmek yerine doğrudan speechSynthesis kullan.
+      doWebSpeak();
+    },
+    async askAI(text, lang, contextNote, history) {
+      const key = getKey();
+      if (!key) return 'API anahtarı bulunamadı. Sağ üstteki ⚙ düğmesinden Groq API anahtarını gir.';
+      const system = (lang === 'tr'
+        ? 'Sen Aven, İngilizce öğreten sabırlı, samimi ve canlı bir öğretmensin. Öğrencinin SEVİYESİNE GÖRE (A1-A2 başlangıç, B1-B2 orta, C1 ileri) ders anlatırsın: çok basit cümlelerle başlayıp öğrenci hazır oldukça zorlaştırırsın. Her derste YENİ KELİMELER öğretirsin (kelime haznesi geniş olsun — günlük hayat, okul, aile, yemek, seyahat, iş, teknoloji, duygular, hava, spor vb. konulardan), her kelime için 2-3 gerçek örnek cümle verirsin, doğru telaffuzu gösterirsin. Öğrenciye AKTİF ALIŞTIRMA yaptırırsın: "Şimdi bu kelimeyle bir cümle kur", "Bu cümleyi İngilizce söyler misin?" gibi. Öğrencinin hatalarını nazikçe düzeltir, nedenini kısaca açıklarsın, sonra doğru halini örnekle pekiştirirsin. Bir konuyu öğrettikten sonra mutlaka KISA BİR TEKRAR/ÖZET yaparsın ve öğrenciye devam edip etmeyeceğini sorarsın. İngilizce kelime ve örnek cümleleri HER ZAMAN çift tırnak içinde ver: "apple", "Hello, how are you?" gibi. Türkçe açıklarken İngilizce örnekleri bol kullan. SADECE düz, akıcı ve samimi metinle konuş. Asla markdown (**, *, #, _, ```, listeler), token sayısı, API adı, model adı, kod parçası ya da teknik bilgi yazma. Kısa, net ve öğretici cümleler kur. Öğrenci bir kelimeyi/konuyu anlamadıysa sabırla farklı bir örnekle tekrar açıkla.'
+        : 'You are Aven, a patient, warm and lively English teacher. Teach according to the student\'s LEVEL (A1-A2 beginner, B1-B2 intermediate, C1 advanced): start with very simple sentences and gently increase difficulty as the student is ready. In every lesson teach NEW WORDS (broad vocabulary — everyday life, school, family, food, travel, work, technology, emotions, weather, sports etc.), give 2-3 real example sentences for each word, and show correct pronunciation. Give ACTIVE PRACTICE: "Now make a sentence with this word", "Can you say this in English?". Correct mistakes kindly, briefly explain why, then reinforce with a correct example. After teaching a topic always give a SHORT RECAP/SUMMARY and ask the student if they want to continue. ALWAYS put English words and example sentences inside double quotes, like "apple", "Hello, how are you?". Use plenty of English examples while explaining. Speak ONLY in clean, fluent, plain text. Never use markdown (**, *, #, _, ```, lists), token counts, API names, model names, code snippets, or any technical info. Keep sentences short, clear and instructive. If the student doesn\'t understand, patiently re-explain with a different example.')
+        + (contextNote ? '\n\n' + contextNote : '');
+      const msgs = [{ role: 'system', content: system }];
+      // Geçmiş mesajları ekle (bağlam kayması olmasın)
+      if (Array.isArray(history)) {
+        history.forEach(m => {
+          if (m && m.role && m.content) msgs.push({ role: m.role, content: m.content });
+        });
+      }
+      msgs.push({ role: 'user', content: text });
+      const res = await fetch(GROQ_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+        body: JSON.stringify({
+          model: GROQ_MODEL,
+          messages: msgs,
+          temperature: 0.7
+        })
+      });
+      if (!res.ok) throw new Error('Groq API hatası: ' + res.status);
+      const data = await res.json();
+      return data.choices && data.choices[0] ? data.choices[0].message.content : '';
+    },
+    async transcribeAudio(arrayBuffer, mimeType, language) {
+      const key = getKey();
+      if (!key) return '';
+      const blob = new Blob([arrayBuffer], { type: mimeType || 'audio/webm' });
+      const form = new FormData();
+      form.append('model', 'whisper-large-v3-turbo');
+      form.append('language', language || 'en');
+      form.append('file', blob, 'recording.webm');
+      const res = await fetch(GROQ_TRANSCRIBE_URL, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + key },
+        body: form
+      });
+      if (!res.ok) throw new Error('Transkripsiyon hatası: ' + res.status);
+      const data = await res.json();
+      return data.text || '';
+    },
+    async getApiKeyStatus() {
+      return { configured: Boolean(getKey()) };
+    },
+    async saveApiKey(key) {
+      try { localStorage.setItem(KEY_STORE, key); return { ok: true }; }
+      catch (e) { return { ok: false }; }
+    }
+  };
+}
+
+// ---------------------------------------------------------------
+// 0. DİL (TR/EN)
+// ---------------------------------------------------------------
+let voiceLanguage = 'tr-TR';
+try { voiceLanguage = localStorage.getItem('ingilizce-ogretmeni-voice-lang') || 'tr-TR'; } catch (e) {}
+
+const UI_TEXT = {
+  'tr-TR': {
+    chatHeaderTitle: '🧑‍🏫 İngilizce Öğretmeni Aven',
+    showRobotBtn: '🤖 Aven’i Göster',
+    apiKeyBtn: '⚙ API Anahtarı',
+    apiKeyBtnConfigured: '⚙ API Anahtarı ✓',
+    apiKeyBtnTitleConfigured: 'API anahtarı kayıtlı — değiştirmek için tıkla',
+    apiKeyBtnTitleUnconfigured: 'Groq API anahtarını gir',
+    hideRobotBtnTitle: 'Aven’i gizle',
+    teacherGreetingBubble: 'Merhaba! Ben Aven, İngilizce öğretmenin. Hangi seviyedesin?',
+    micBtnStart: '🎤 Konuş',
+    micBtnStartTitle: 'Aven ile sesli konuşmayı başlat',
+    micBtnStop: '⏹ Durdur',
+    micBtnStopTitle: 'Sesli sohbeti durdur',
+    chatInputPlaceholder: 'İngilizce ya da Türkçe yaz...',
+    sendBtn: 'Gönder',
+    apiKeyDialogTitle: 'Groq API Anahtarı',
+    apiKeyDialogDesc: 'Anahtar sadece bu bilgisayardaki .env dosyasına kaydedilir. Anahtarını kimseyle paylaşma.',
+    apiKeyInputLabel: 'API anahtarı',
+    cancelBtn: 'Vazgeç',
+    saveBtn: 'Kaydet',
+    apiKeySavedMsg: 'API anahtarı kaydedildi. Artık sorularını yanıtlayabilirim!',
+    apiKeySaveFailed: 'Anahtar kaydedilemedi.',
+    micPermissionMsg: 'Aven’in seni duyabilmesi için mikrofon izni vermen gerekiyor.',
+    micPermissionMsg2: 'Mikrofonu kullanabilmem için izin vermen gerekiyor.',
+    wakeWordHeard: '(uyandırma kelimesi duyuldu: "Aven")',
+    initialGreeting: 'Merhaba! Ben Aven, İngilizce öğretmenin. “Aven” dersen ya da “Konuş” düğmesine basarsan seninle sesli konuşmaya başlarım.',
+    voiceLangBtnLabel: '🌐 TR',
+    voiceLangBtnTitle: 'Mikrofon ve arayüz şu an Türkçe - İngilizce\'ye geçmek için tıkla',
+    levelLabel: '📚 İngilizce Seviyen',
+    moduleLabel: '📖 Ders Modülleri',
+    moduleVocab: '🔤 Kelime',
+    moduleGrammar: '📐 Gramer',
+    moduleSentences: '✍️ Cümle Kurma',
+    moduleSpeaking: '🎤 Konuşma',
+    moduleListening: '👂 Dinleme',
+    speakBtn: '🔊 Dinle',
+    checkBtn: 'Kontrol Et',
+    correctMsg: '✅ Doğru!',
+    wrongMsg: '❌ Tekrar dene. İpucu:',
+    listeningHint: 'Aven’in söylediğini dinle, sonra ne anladığını yaz.',
+    tabLessons: '📚 Dersler',
+    tabChat: '💬 Sohbet',
+    levelA1: 'A1 — Başlangıç',
+    levelA2: 'A2 — Temel',
+    levelB1: 'B1 — Orta',
+    levelB2: 'B2 — Orta-Üstü',
+    levelC1: 'C1 — İleri',
+    voiceSetBtn: '🔊 Ses',
+    voiceSetRatePrompt: 'Ses hızı (0.5 = yavaş, 1 = normal, 2 = hızlı):\nŞu an: ',
+    voiceSetPitchPrompt: 'Ses tonu (0.5 = kalın, 1 = normal, 2 = ince):\nŞu an: ',
+    voiceSetUpdated: 'Ses ayarları güncellendi: hız ',
+    voiceSetUpdated2: ', ton ',
+    exercisePlaceholder: 'Cevabını yaz...',
+    listeningPlaceholder: 'Ne anladığını yaz...',
+    speakingExample: 'Örnek: ',
+    practiceBtn: '🎤 Pratik Yap',
+    memoryRestored: '(Önceki oturumdan hatırlandı — bağlam korunuyor)',
+    memoryResume: 'Önceki oturumda kaldığın yer: seviye ',
+    memoryResume2: ', modül ',
+    memoryResume3: '. Devam edebilirsin!',
+    apiKeyMissing: 'API anahtarı bulunamadı. Sağ üstteki ⚙ düğmesinden Groq API anahtarını gir.',
+    transcribeFailed: 'Ses anlaşılamadı: ',
+    ctxResume: 'Öğrencinin kaldığı ders: seviye ',
+    ctxResume2: ', modül ',
+    ctxProfile: '\nÖğrencinin öğrenme profili: ',
+    ctxProfile2: '. Bu profile göre ders anlat: ',
+    ctxProfile3: '. Öğrenci ',
+    ctxProfile4: ' ağırlıklı öğreniyor, ',
+    ctxProfile5: ' destekle güçlendir.\n',
+    moduleBarTitle: '📖 Ders Modülleri',
+    modVocab: '🔤 Kelime',
+    modGrammar: '📐 Gramer',
+    modSentences: '✍️ Cümle Kurma',
+    modSpeaking: '🎤 Konuşma',
+    modListening: '👂 Dinleme'
+  },
+  'en-US': {
+    chatHeaderTitle: '🧑‍🏫 English Teacher Aven',
+    showRobotBtn: '🤖 Show Aven',
+    apiKeyBtn: '⚙ API Key',
+    apiKeyBtnConfigured: '⚙ API Key ✓',
+    apiKeyBtnTitleConfigured: 'API key saved — click to change it',
+    apiKeyBtnTitleUnconfigured: 'Enter your Groq API key',
+    hideRobotBtnTitle: 'Hide Aven',
+    teacherGreetingBubble: 'Hi! I\'m Aven, your English teacher. What level are you?',
+    micBtnStart: '🎤 Talk',
+    micBtnStartTitle: 'Start talking with Aven',
+    micBtnStop: '⏹ Stop',
+    micBtnStopTitle: 'Stop the voice chat',
+    chatInputPlaceholder: 'Type in English or Turkish...',
+    sendBtn: 'Send',
+    apiKeyDialogTitle: 'Groq API Key',
+    apiKeyDialogDesc: 'The key is only saved to the .env file on this computer. Don\'t share your key with anyone.',
+    apiKeyInputLabel: 'API key',
+    cancelBtn: 'Cancel',
+    saveBtn: 'Save',
+    apiKeySavedMsg: 'API key saved. I can answer your questions now!',
+    apiKeySaveFailed: 'Could not save the key.',
+    micPermissionMsg: 'I need microphone permission so Aven can hear you.',
+    micPermissionMsg2: 'I need permission to use the microphone.',
+    wakeWordHeard: '(wake word heard: "Aven")',
+    initialGreeting: 'Hi! I\'m Aven, your English teacher. Say "Aven" or press "Talk" to start a voice conversation.',
+    voiceLangBtnLabel: '🌐 EN',
+    voiceLangBtnTitle: 'Microphone and UI are in English - click to switch to Turkish',
+    levelLabel: '📚 Your English Level',
+    moduleLabel: '📖 Lesson Modules',
+    moduleVocab: '🔤 Vocabulary',
+    moduleGrammar: '📐 Grammar',
+    moduleSentences: '✍️ Sentence Building',
+    moduleSpeaking: '🎤 Speaking',
+    moduleListening: '👂 Listening',
+    speakBtn: '🔊 Listen',
+    checkBtn: 'Check',
+    correctMsg: '✅ Correct!',
+    wrongMsg: '❌ Try again. Hint:',
+    listeningHint: 'Listen to what Aven says, then write what you understood.',
+    tabLessons: '📚 Lessons',
+    tabChat: '💬 Chat',
+    levelA1: 'A1 — Beginner',
+    levelA2: 'A2 — Elementary',
+    levelB1: 'B1 — Intermediate',
+    levelB2: 'B2 — Upper-Intermediate',
+    levelC1: 'C1 — Advanced',
+    voiceSetBtn: '🔊 Voice',
+    voiceSetRatePrompt: 'Speech rate (0.5 = slow, 1 = normal, 2 = fast):\nCurrent: ',
+    voiceSetPitchPrompt: 'Voice pitch (0.5 = deep, 1 = normal, 2 = high):\nCurrent: ',
+    voiceSetUpdated: 'Voice settings updated: rate ',
+    voiceSetUpdated2: ', pitch ',
+    exercisePlaceholder: 'Type your answer...',
+    listeningPlaceholder: 'Write what you understood...',
+    speakingExample: 'Example: ',
+    practiceBtn: '🎤 Practice',
+    memoryRestored: '(Restored from previous session — context preserved)',
+    memoryResume: 'Where you left off: level ',
+    memoryResume2: ', module ',
+    memoryResume3: '. You can continue!',
+    apiKeyMissing: 'API key not found. Click the ⚙ button in the top right to enter your Groq API key.',
+    transcribeFailed: 'Could not understand audio: ',
+    ctxResume: 'Student\'s last lesson: level ',
+    ctxResume2: ', module ',
+    ctxProfile: '\nStudent learning profile: ',
+    ctxProfile2: '. Teach according to this profile: ',
+    ctxProfile3: '. Student learns primarily via ',
+    ctxProfile4: ', reinforce with ',
+    ctxProfile5: '.\n',
+    moduleBarTitle: '📖 Lesson Modules',
+    modVocab: '🔤 Vocabulary',
+    modGrammar: '📐 Grammar',
+    modSentences: '✍️ Sentence Building',
+    modSpeaking: '🎤 Speaking',
+    modListening: '👂 Listening'
+  }
+};
+
+function uiText(key) { return (UI_TEXT[voiceLanguage] || UI_TEXT['tr-TR'])[key] || ''; }
+
+// ---------------------------------------------------------------
+// 1. DERS İÇERİKLERİ - seviyeye (A1-C1) göre gerçek İngilizce müfredatı
+// ---------------------------------------------------------------
+const LESSONS = window.ENGLISH_LESSONS;
+
+// ---------------------------------------------------------------
+// 2. DOM referansları
+// ---------------------------------------------------------------
+const levelSelect = document.getElementById('levelSelect');
+const moduleBtns = document.querySelectorAll('.module-btn');
+const lessonTitle = document.getElementById('lessonTitle');
+const lessonDesc = document.getElementById('lessonDesc');
+const lessonBody = document.getElementById('lessonBody');
+const chatLog = document.getElementById('chatLog');
+const chatInput = document.getElementById('chatInput');
+const sendBtn = document.getElementById('sendBtn');
+const micBtn = document.getElementById('micBtn');
+const teacherSpeech = document.getElementById('teacherSpeech');
+const teacherStage = document.getElementById('teacherStage');
+const apiKeyBtn = document.getElementById('apiKeyBtn');
+const voiceLangBtn = document.getElementById('voiceLangBtn');
+const showRobotBtn = document.getElementById('showRobotBtn');
+const hideRobotBtn = document.getElementById('hideRobotBtn');
+const apiKeyDialog = document.getElementById('apiKeyDialog');
+const apiKeyForm = document.getElementById('apiKeyForm');
+const apiKeyInput = document.getElementById('apiKeyInput');
+const apiKeyStatus = document.getElementById('apiKeyStatus');
+const cancelApiKeyBtn = document.getElementById('cancelApiKeyBtn');
+
+let currentLevel = 'A1';
+let currentModule = 'vocab';
+let currentLesson = null;
+let isListening = false;
+let mediaRecorder = null;
+let audioChunks = [];
+let chatHistory = [];
+
+// ---------------------------------------------------------------
+// 3. Ders görüntüleme
+// ---------------------------------------------------------------
+function renderLesson() {
+  const levelData = LESSONS[currentLevel];
+  if (!levelData || !levelData[currentModule]) return;
+  const lesson = levelData[currentModule];
+  currentLesson = lesson;
+  lessonTitle.textContent = lesson.title;
+  lessonDesc.textContent = lesson.desc;
+  lessonBody.innerHTML = '';
+
+  if (currentModule === 'vocab') {
+    lesson.items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'vocab-card';
+      card.innerHTML = `<div class="vocab-word">${item.word}</div>
+        <div class="vocab-tr">${item.tr}</div>
+        <div class="vocab-example">“${item.example}”</div>
+        <button class="speak-btn" data-speak="${item.word}">${uiText('speakBtn')}</button>`;
+      lessonBody.appendChild(card);
+    });
+  } else if (currentModule === 'grammar') {
+    lesson.items.forEach(item => {
+      const box = document.createElement('div');
+      box.className = 'grammar-box';
+      box.innerHTML = `<div class="grammar-rule">${item.rule}</div>
+        <div class="grammar-example">${item.example}</div>
+        <button class="speak-btn" data-speak="${item.example}">${uiText('speakBtn')}</button>`;
+      lessonBody.appendChild(box);
+    });
+  } else if (currentModule === 'sentences') {
+    lesson.items.forEach((item, idx) => {
+      const box = document.createElement('div');
+      box.className = 'exercise-box';
+      box.innerHTML = `<h4>${idx + 1}. ${item.prompt}</h4>
+        <input class="exercise-input" type="text" placeholder="${uiText('exercisePlaceholder')}" />
+        <button class="exercise-btn" data-answer="${item.answer}">${uiText('checkBtn')}</button>
+        <div class="exercise-feedback"></div>`;
+      lessonBody.appendChild(box);
+    });
+  } else if (currentModule === 'speaking') {
+    lesson.items.forEach((item, idx) => {
+      const box = document.createElement('div');
+      box.className = 'exercise-box';
+      box.innerHTML = `<h4>${idx + 1}. ${item.prompt}</h4>
+        <div class="grammar-example">${uiText('speakingExample')}${item.example}</div>
+        <button class="speak-btn" data-speak="${item.example}">${uiText('speakBtn')}</button>
+        <button class="exercise-btn" data-practice="${item.prompt}">${uiText('practiceBtn')}</button>`;
+      lessonBody.appendChild(box);
+    });
+  } else if (currentModule === 'listening') {
+    lesson.items.forEach((item, idx) => {
+      const box = document.createElement('div');
+      box.className = 'exercise-box';
+      box.innerHTML = `<h4>${idx + 1}. ${uiText('listeningHint')}</h4>
+        <button class="speak-btn" data-speak="${item.text}">🔊 ${uiText('speakBtn')}</button>
+        <input class="exercise-input" type="text" placeholder="${uiText('listeningPlaceholder')}" />
+        <button class="exercise-btn" data-answer="${item.tr}">${uiText('checkBtn')}</button>
+        <div class="exercise-feedback"></div>`;
+      lessonBody.appendChild(box);
+    });
+  }
+
+  lessonBody.querySelectorAll('[data-speak]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      // Öğrenme stili tespiti: dinleme etkileşimini kaydet
+      trackInteraction(currentModule === 'listening' ? 'listen' : currentModule);
+      saveStyleToFile();
+      window.ogretmenAPI.speak(btn.dataset.speak, 'en-US');
+    });
+  });
+
+  lessonBody.querySelectorAll('.exercise-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      trackInteraction(currentModule);
+      saveStyleToFile();
+      const box = btn.closest('.exercise-box');
+      const feedback = box.querySelector('.exercise-feedback');
+      if (btn.dataset.answer) {
+        const input = box.querySelector('.exercise-input');
+        const userAnswer = input.value.trim().toLowerCase();
+        const correct = btn.dataset.answer.toLowerCase();
+        if (userAnswer === correct) {
+          feedback.textContent = uiText('correctMsg');
+          feedback.className = 'exercise-feedback correct';
+        } else {
+          feedback.textContent = `${uiText('wrongMsg')} ${btn.dataset.answer}`;
+          feedback.className = 'exercise-feedback wrong';
+        }
+      } else if (btn.dataset.practice) {
+        const practicePrompt = voiceLanguage === 'en-US'
+          ? `Speaking practice (level ${currentLevel}): ${btn.dataset.practice}. Give me English example sentences about this and practice with me.`
+          : `Konuşma pratiği (seviye ${currentLevel}): ${btn.dataset.practice}. Bana bu konuda İngilizce örnek cümleler ver ve benimle pratik yap.`;
+        askAI(practicePrompt);
+      }
+    });
+  });
+}
+
+// ---------------------------------------------------------------
+// 4. Sohbet
+// ---------------------------------------------------------------
+// AI cevabindaki markdown/kalinti karakterleri temizle -> ari, dogal metin
+function cleanAiText(raw) {
+  if (!raw) return '';
+  let t = String(raw);
+  t = t.replace(/```[\s\S]*?```/g, ' ');       // kod bloklari
+  t = t.replace(/`([^`]+)`/g, '$1');            // satir ici kod
+  t = t.replace(/\*\*\*([^*]+)\*\*\*/g, '$1');  // ***bold***
+  t = t.replace(/\*\*([^*]+)\*\*/g, '$1');      // **bold**
+  t = t.replace(/\*([^*]+)\*/g, '$1');          // *italic*
+  t = t.replace(/__([^_]+)__/g, '$1');          // __text__
+  t = t.replace(/_([^_]+)_/g, '$1');            // _text_
+  t = t.replace(/^#{1,6}\s*/gm, '');            // baslik isaretleri
+  t = t.replace(/^\s*[-*+]\s+/gm, '');          // liste madde isaretleri (basa)
+  t = t.replace(/^\s*\d+[.)]\s+/gm, '');        // numarali liste
+  t = t.replace(/[ \t]{2,}/g, ' ');            // fazla bosluk/tab (yeni satirlari KORU)
+  t = t.replace(/[ \t]+$/gm, '');              // satir sonu bosluklar
+  t = t.replace(/\n{3,}/g, '\n\n');            // fazla satir
+  return t.trim();
+}
+
+function addMsg(text, who, save = true) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + who;
+  div.textContent = text;
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
+  // Kalıcı hafıza: mesajı chatHistory'e ekle ve localStorage'a kaydet
+  if (save) {
+    chatHistory.push({ role: who === 'user' ? 'user' : 'assistant', content: text });
+    saveMemory();
+  }
+}
+
+// ---- Kalıcı hafıza (localStorage) ----
+const MEM_KEYS = {
+  history: 'aven-memory-history',
+  context: 'aven-memory-last-context',
+};
+
+const MEM_FILE = 'aven-memory.json';
+
+// Gerçek dosyaya yaz (Capacitor Filesystem - Android'de kalıcı) + localStorage yedeği
+function saveMemory() {
+  try {
+    // Mesajlar + kaldığı ders birlikte tek objede sakla
+    const payload = {
+      messages: chatHistory.slice(-12),
+      level: currentLevel,
+      module: currentModule,
+    };
+    const data = JSON.stringify(payload);
+    localStorage.setItem(MEM_KEYS.history, data);
+    // Capacitor Filesystem varsa gerçek dosyaya yaz (kalıcı depo)
+    const FS = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem;
+    if (FS) {
+      FS.writeFile({ path: MEM_FILE, data, directory: 'DOCUMENTS', encoding: 'utf8' })
+        .then(() => {}).catch(() => {});
+    }
+  } catch (e) {}
+}
+
+function loadMemory() {
+  try {
+    // Önce gerçek dosyadan okumayı dene (kalıcı depo), yoksa localStorage
+    const FS = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem;
+    if (FS) {
+      FS.readFile({ path: MEM_FILE, directory: 'DOCUMENTS', encoding: 'utf8' })
+        .then(r => { if (r.data) hydrateMemory(r.data); })
+        .catch(() => { const h = localStorage.getItem(MEM_KEYS.history); if (h) hydrateMemory(h); });
+    } else {
+      const h = localStorage.getItem(MEM_KEYS.history);
+      if (h) hydrateMemory(h);
+    }
+  } catch (e) {
+    try { const h = localStorage.getItem(MEM_KEYS.history); if (h) hydrateMemory(h); } catch (e2) {}
+  }
+}
+
+// Okunan JSON hafızayı arayüze geri yükle (önceki oturum son 4 mesajı ekranda görünür)
+function hydrateMemory(data) {
+  try {
+    const obj = JSON.parse(data);
+    // Eski format (düz dizi) ile yeni format (obje) uyumlu olsun
+    const msgs = Array.isArray(obj) ? obj : (obj.messages || []);
+    chatHistory = msgs;
+    // Kaldığı son ders modülünü geri yükle (öncelik: dosyadaki context)
+    let lastLvl = null, lastMod = null;
+    if (!Array.isArray(obj)) { lastLvl = obj.level; lastMod = obj.module; }
+    if (!lastLvl) lastLvl = localStorage.getItem('aven-last-level');
+    if (!lastMod) lastMod = localStorage.getItem('aven-last-module');
+    if (lastLvl && lastMod && LESSONS[lastLvl] && LESSONS[lastLvl][lastMod]) {
+      currentLevel = lastLvl;
+      currentModule = lastMod;
+    }
+    // Önceki oturumun son 4 mesajını ekranda göster (bağlam kayması olmasın)
+    const last4 = chatHistory.slice(-4);
+    if (last4.length && typeof chatLog !== 'undefined' && chatLog) {
+      last4.forEach(m => {
+        if (m && m.content) addMsg(m.content, m.role === 'assistant' ? 'ai' : 'user', false);
+      });
+    }
+  } catch (e) {}
+}
+
+function saveLastContext() {
+  try {
+    localStorage.setItem(MEM_KEYS.context, JSON.stringify({
+      level: currentLevel,
+      module: currentModule,
+    }));
+    localStorage.setItem('aven-last-level', currentLevel);
+    localStorage.setItem('aven-last-module', currentModule);
+    // Seviye/modül değiştiğinde dosyaya da yaz (veri temizlense bile kalsın)
+    saveMemory();
+  } catch (e) {}
+}
+
+// =============================================================
+// Öğrenme stili profili (kişilik analizi → adaptif eğitim modeli)
+// Kullanıcının etkileşimlerini izler, kural tabanlı olarak nasıl
+// öğrendiğini (görsel/işitsel/kinestetik/okuma-yazma) tespit eder.
+// Sonuçlar localStorage + dosyada saklanır, AI'ya bağlam olarak verilir.
+// =============================================================
+const STYLE_KEYS = {
+  profile: 'aven-learner-style',
+  stats: 'aven-learner-stats',
+};
+
+function loadStyleStats() {
+  try { return JSON.parse(localStorage.getItem(STYLE_KEYS.stats) || '{}'); }
+  catch (e) { return {}; }
+}
+
+function saveStyleStats(s) {
+  try { localStorage.setItem(STYLE_KEYS.stats, JSON.stringify(s)); }
+  catch (e) {}
+}
+
+// Bir modül/değerlendirme etkileşimini kaydet
+function trackInteraction(kind) {
+  // Modül adını öğrenme stili anahtarına eşle (listen/speak/write/vocab/grammar)
+  const map = { listening: 'listen', speaking: 'speak', sentences: 'write', vocab: 'vocab', grammar: 'grammar' };
+  const key = map[kind] || kind;
+  const s = loadStyleStats();
+  s[key] = (s[key] || 0) + 1;
+  // Son 40 etkileşim penceresi içinde oranlar anlamlı olsun
+  const total = Object.values(s).reduce((a, b) => a + b, 0);
+  saveStyleStats(s);
+  return s;
+}
+
+// Kural tabanlı öğrenme stili analizi
+function analyzeLearningStyle() {
+  const s = loadStyleStats();
+  const listen = s.listen || 0;       // Dinleme tıklaması (işitsel)
+  const speak = s.speak || 0;        // Konuşma pratiği (kinestetik)
+  const write = s.write || s.sentence || s.sentences || 0;  // Cümle kurma (okuma-yazma)
+  const vocab = s.vocab || 0;        // Kelime kartı görüntüleme (görsel)
+  const grammar = s.grammar || 0;    // Gramer kuralı (mantıksal/kurallı)
+  const total = listen + speak + write + vocab + grammar;
+  if (total < 3) return null; // yeterli veri yok
+
+  const ratio = { listen, speak, write, vocab, grammar };
+  const sorted = Object.entries(ratio).sort((a, b) => b[1] - a[1]);
+  const primary = sorted[0][0];
+  const secondary = sorted[1] ? sorted[1][0] : primary;
+
+  const MAP = {
+    listen:   voiceLanguage === 'en-US'
+      ? { desc: 'Auditory (learns by hearing)', coach: 'Say words and sentences aloud, give listening exercises.', primary: 'listening', secondary: 'visual' }
+      : { desc: 'İşitsel (duyarak öğrenir)',            coach: 'Kelimeleri ve cümleleri sesli söyle, dinleme egzersizleri ver.',             primary: 'dinleme',  secondary: 'görsel' },
+    speak:    voiceLanguage === 'en-US'
+      ? { desc: 'Kinesthetic (learns by doing)', coach: 'Have them practice speaking, build sentences, apply actively.', primary: 'speaking', secondary: 'listening' }
+      : { desc: 'Kinestetik (yaparak öğrenir)',         coach: 'Konuşma pratiği yaptır, cümle kurmasını iste, aktif uygulat.',             primary: 'konuşma',  secondary: 'dinleme' },
+    write:    voiceLanguage === 'en-US'
+      ? { desc: 'Reading-writing (learns by writing)', coach: 'Have them write sentences, give fill-in-the-blank and translation exercises.', primary: 'writing', secondary: 'grammar' }
+      : { desc: 'Okuma-yazma (yazarak öğrenir)',        coach: 'Cümleleri yazdır, boşluk doldurma ve çeviri egzersizleri ver.',            primary: 'yazma',    secondary: 'gramer' },
+    vocab:    voiceLanguage === 'en-US'
+      ? { desc: 'Visual (learns by seeing)', coach: 'Use flashcards, pictures and example sentences for visual presentation.', primary: 'visual', secondary: 'listening' }
+      : { desc: 'Görsel (görerek öğrenir)',             coach: 'Kelime kartları, resim/örnek cümlelerle görsel sunum yap.',                primary: 'görsel',   secondary: 'dinleme' },
+    grammar:  voiceLanguage === 'en-US'
+      ? { desc: 'Logical (learns by rules)', coach: 'Explain grammar rules step by step, give structured examples.', primary: 'logical', secondary: 'writing' }
+      : { desc: 'Mantıksal (kurallarla öğrenir)',       coach: 'Gramer kurallarını adım adım açıkla, yapılandırılmış örnekler ver.',       primary: 'mantıksal', secondary: 'yazma' },
+  };
+  const p = MAP[primary] || MAP.vocab;
+  return { desc: p.desc, coach: p.coach, primary: p.primary, secondary: p.secondary };
+}
+
+// Öğrenme stili profilini kalıcı dosyaya da yaz (veri temizlense kalsın)
+function saveStyleToFile() {
+  try {
+    const data = JSON.stringify({ stats: loadStyleStats() });
+    localStorage.setItem(STYLE_KEYS.profile, JSON.stringify(analyzeLearningStyle()));
+    const FS = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem;
+    if (FS) FS.writeFile({ path: 'aven-style.json', data, directory: 'DOCUMENTS', encoding: 'utf8' }).then(() => {}).catch(() => {});
+  } catch (e) {}
+}
+
+function buildContextPrompt() {
+  // Önceki oturumdan kalan bağlam ve son 4 mesajı AI'ya bağlam olarak ver
+  let ctx = '';
+  try {
+    const lastCtx = JSON.parse(localStorage.getItem(MEM_KEYS.context) || '{}');
+    if (lastCtx.level) {
+      ctx += uiText('ctxResume') + lastCtx.level + uiText('ctxResume2') + lastCtx.module + '. ';
+    }
+  } catch (e) {}
+  // Öğrenme stili profilini AI'ya tanıt (kişilik analizi → adaptif eğitim modeli)
+  const style = analyzeLearningStyle();
+  if (style) {
+    ctx += uiText('ctxProfile') + style.desc + uiText('ctxProfile2') + style.coach + uiText('ctxProfile3') + style.primary + uiText('ctxProfile4') + style.secondary + uiText('ctxProfile5');
+  }
+  // Mevcut dersin içeriğini AI'ya ver → o derse özel "birebir" ders anlatsın
+  try {
+    const levelData = LESSONS[currentLevel];
+    const lesson = levelData && levelData[currentModule];
+    if (lesson && lesson.title) {
+      ctx += `\nŞU ANKİ DERS: seviye ${currentLevel}, ${lesson.title}` + (lesson.desc ? ` (${lesson.desc})` : '') + '. ';
+      if (Array.isArray(lesson.items) && lesson.items.length) {
+        ctx += 'Bu dersteki kelimeler/örnekler: ';
+        const wlist = lesson.items.slice(0, 25).map(it => it.word + ' = ' + (it.tr || '') + (it.example ? ' ("' + it.example + '")' : '')).join(', ');
+        ctx += wlist + '. Bu dersteki kelimeleri öğret, örnek cümlelerle pekiştir, öğrenciyle bu kelimeler üzerinden pratik yap.\n';
+      }
+    }
+  } catch (e) {}
+  // chatHistory zaten last-8 içeriyor; son 4'ünü ayrıca bağlam olarak ekle
+  if (chatHistory.length > 0) {
+    const last4 = chatHistory.slice(-4).map(m => `${m.role}: ${m.content}`).join('\n');
+    const contNote = voiceLanguage === 'en-US'
+      ? '\nContinuing from previous conversation (keep context):\n'
+      : '\nÖnceki konuşmadan devam (bağlam kayması olmasın):\n';
+    ctx += contNote + last4 + '\n';
+  }
+  return ctx;
+}
+
+async function askAI(text) {
+  addMsg(text, 'user');
+  chatInput.value = '';
+  const thinking = document.createElement('div');
+  thinking.className = 'msg ai';
+  thinking.textContent = '...';
+  chatLog.appendChild(thinking);
+  try {
+    // Bağlam bilgisi + son mesaj geçmişi
+    const contextNote = buildContextPrompt();
+    const reply = await window.ogretmenAPI.askAI(text, voiceLanguage === 'en-US' ? 'en' : 'tr', contextNote, chatHistory.slice(-6));
+    const cleanReply = cleanAiText(reply);
+    addMsg(cleanReply, 'ai');
+    thinking.remove();
+    teacherSpeech.textContent = cleanReply;
+    window.ogretmenAPI.speak(cleanReply, voiceLanguage);
+  } catch (e) {
+    thinking.textContent = uiText('apiKeyMissing');
+  }
+  chatLog.scrollTop = chatLog.scrollHeight;
+  saveLastContext();
+}
+
+// ---------------------------------------------------------------
+// 5. Sesli konuşma (mikrofon)
+// ---------------------------------------------------------------
+async function toggleListening() {
+  if (isListening) { _stopVoice(); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    _startVoice(stream);
+  } catch (e) { alert(uiText('micPermissionMsg')); }
+}
+
+let audioCtx = null;
+let analyser = null;
+let silentMs = 0;
+let speaking = false;
+let lastLevel = 0;
+let voiceStream = null;
+
+function _startVoice(stream) {
+  if (voiceStream) { voiceStream.getTracks().forEach(t => t.stop()); }  // eski stream'i kapat
+  voiceStream = stream;
+  isListening = true;
+  micBtn.textContent = uiText('micBtnStop');
+  micBtn.classList.add('listening');
+  audioChunks = [];
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!analyser) {
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.6;
+    }
+    const src = audioCtx.createMediaStreamSource(stream);
+    src.connect(analyser);
+  } catch (e) {}
+  mediaRecorder = new MediaRecorder(stream);
+  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+  mediaRecorder.onstop = async () => {
+    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+    const buf = await blob.arrayBuffer();
+    const lang = voiceLanguage === 'en-US' ? 'en' : 'tr';
+    try {
+      const text = await window.ogretmenAPI.transcribeAudio(buf, 'audio/webm', lang);
+      audioChunks = [];
+      if (text && text.trim()) { chatInput.value = text.trim(); askAI(text.trim()); }
+    } catch (e) { addMsg(uiText('transcribeFailed') + e.message, 'ai'); }
+    // Konuşma modu açıksa otomatik yeniden dinlemeye başla (sürekli sohbet)
+    if (isListening) {
+      setTimeout(async () => {
+        try {
+          const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+          _startVoice(s);
+        } catch (e) {}
+      }, 500);
+    }
+  };
+  mediaRecorder.start();
+  // Ses seviyesini örnekle; 1.2 sn sessizlik olunca otomatik gönder
+  const buf = new Uint8Array(analyser ? analyser.frequencyBinCount : 0);
+  const checkTimer = setInterval(() => {
+    if (!isListening) { clearInterval(checkTimer); return; }
+    let level = 0;
+    if (analyser) {
+      analyser.getByteFrequencyData(buf);
+      let sum = 0; for (let i = 0; i < buf.length; i++) sum += buf[i];
+      level = sum / buf.length;
+    }
+    if (level > 18) { speaking = true; silentMs = 0; }
+    else if (speaking) { silentMs += 120; if (silentMs >= 1200) {
+      clearInterval(checkTimer);
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    } }
+    lastLevel = level;
+  }, 120);
+}
+
+function _stopVoice() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  isListening = false;
+  micBtn.textContent = uiText('micBtnStart');
+  micBtn.classList.remove('listening');
+  if (voiceStream) { voiceStream.getTracks().forEach(t => t.stop()); voiceStream = null; }
+}
+
+async function refreshApiKeyBtn() {
+
+  try {
+    const status = await window.ogretmenAPI.getApiKeyStatus();
+    if (status && status.configured) {
+      apiKeyBtn.textContent = uiText('apiKeyBtnConfigured');
+      apiKeyBtn.title = uiText('apiKeyBtnTitleConfigured');
+    } else {
+      apiKeyBtn.textContent = uiText('apiKeyBtn');
+      apiKeyBtn.title = uiText('apiKeyBtnTitleUnconfigured');
+    }
+  } catch (e) { /* yoksay */ }
+}
+
+apiKeyBtn.addEventListener('click', () => {
+  apiKeyStatus.textContent = '';
+  apiKeyInput.value = '';
+  apiKeyDialog.showModal();
+});
+cancelApiKeyBtn.addEventListener('click', () => apiKeyDialog.close());
+apiKeyForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const key = apiKeyInput.value.trim();
+  if (!key) return;
+  try {
+    const result = await window.ogretmenAPI.saveApiKey(key);
+    if (result && result.ok) {
+      apiKeyStatus.textContent = uiText('apiKeySavedMsg');
+      apiKeyStatus.style.color = '#1a7a3c';
+      setTimeout(() => apiKeyDialog.close(), 1200);
+      refreshApiKeyBtn();
+    } else {
+      apiKeyStatus.textContent = uiText('apiKeySaveFailed');
+    }
+  } catch (err) {
+    apiKeyStatus.textContent = uiText('apiKeySaveFailed');
+  }
+});
+
+// ---------------------------------------------------------------
+// 7. Dil değiştirme
+// ---------------------------------------------------------------
+function applyLanguage() {
+  voiceLangBtn.textContent = uiText('voiceLangBtnLabel');
+  voiceLangBtn.title = uiText('voiceLangBtnTitle');
+  apiKeyBtn.textContent = uiText('apiKeyBtn');
+  micBtn.textContent = uiText('micBtnStart');
+  micBtn.title = uiText('micBtnStartTitle');
+  chatInput.placeholder = uiText('chatInputPlaceholder');
+  sendBtn.textContent = uiText('sendBtn');
+  showRobotBtn.textContent = uiText('showRobotBtn');
+  hideRobotBtn.title = uiText('hideRobotBtnTitle');
+  document.querySelector('#levelBar h2').textContent = uiText('levelLabel');
+  document.querySelector('#moduleBar h3').textContent = uiText('moduleLabel');
+  const mods = document.querySelectorAll('.module-btn');
+  const modKeys = ['moduleVocab', 'moduleGrammar', 'moduleSentences', 'moduleSpeaking', 'moduleListening'];
+  mods.forEach((m, i) => { if (modKeys[i]) m.textContent = uiText(modKeys[i]); });
+
+  // --- Eksik kalan sabit metinleri de güncelle ---
+  // Chat başlığı
+  const chatHeaderTitleEl = document.getElementById('chatHeaderTitle');
+  if (chatHeaderTitleEl) chatHeaderTitleEl.textContent = uiText('chatHeaderTitle');
+  // Mobil sekmeler
+  const tabLessons = document.getElementById('tabLessons');
+  if (tabLessons) tabLessons.textContent = uiText('tabLessons');
+  const tabChat = document.getElementById('tabChat');
+  if (tabChat) tabChat.textContent = uiText('tabChat');
+  // Seviye seçenekleri
+  const optA1 = document.getElementById('optA1'); if (optA1) optA1.textContent = uiText('levelA1');
+  const optA2 = document.getElementById('optA2'); if (optA2) optA2.textContent = uiText('levelA2');
+  const optB1 = document.getElementById('optB1'); if (optB1) optB1.textContent = uiText('levelB1');
+  const optB2 = document.getElementById('optB2'); if (optB2) optB2.textContent = uiText('levelB2');
+  const optC1 = document.getElementById('optC1'); if (optC1) optC1.textContent = uiText('levelC1');
+  // API anahtarı dialogu
+  const apiKeyTitle = document.getElementById('apiKeyTitle'); if (apiKeyTitle) apiKeyTitle.textContent = uiText('apiKeyDialogTitle');
+  const apiKeyDesc = document.getElementById('apiKeyDesc'); if (apiKeyDesc) apiKeyDesc.textContent = uiText('apiKeyDialogDesc');
+  const apiKeyInputLabel = document.getElementById('apiKeyInputLabel'); if (apiKeyInputLabel) apiKeyInputLabel.textContent = uiText('apiKeyInputLabel');
+  const cancelApiKeyBtnEl = document.getElementById('cancelApiKeyBtn'); if (cancelApiKeyBtnEl) cancelApiKeyBtnEl.textContent = uiText('cancelBtn');
+  const saveApiKeyBtnEl = document.getElementById('saveApiKeyBtn'); if (saveApiKeyBtnEl) saveApiKeyBtnEl.textContent = uiText('saveBtn');
+  // Ses butonu
+  const voiceSetBtnEl = document.getElementById('voiceSetBtn'); if (voiceSetBtnEl) voiceSetBtnEl.textContent = uiText('voiceSetBtn');
+  // Ders modülleri (moduleLabel/moduleVocab zaten yukarıda .module-btn ile güncelleniyor)
+  const moduleBarTitle = document.getElementById('moduleBarTitle'); if (moduleBarTitle) moduleBarTitle.textContent = uiText('moduleLabel');
+  // Öğretmen balonu
+  teacherSpeech.textContent = uiText('teacherGreetingBubble');
+  renderLesson();
+}
+
+voiceLangBtn.addEventListener('click', () => {
+  voiceLanguage = voiceLanguage === 'tr-TR' ? 'en-US' : 'tr-TR';
+  try { localStorage.setItem('ingilizce-ogretmeni-voice-lang', voiceLanguage); } catch (e) {}
+  applyLanguage();
+});
+
+// ---------------------------------------------------------------
+// 8. Robot göster/gizle
+// ---------------------------------------------------------------
+hideRobotBtn.addEventListener('click', () => {
+  teacherStage.hidden = true;
+  showRobotBtn.classList.add('visible');
+});
+showRobotBtn.addEventListener('click', () => {
+  teacherStage.hidden = false;
+  showRobotBtn.classList.remove('visible');
+});
+
+// ---------------------------------------------------------------
+// 9. Olay bağlama ve başlatma
+// ---------------------------------------------------------------
+levelSelect.addEventListener('change', () => {
+  currentLevel = levelSelect.value;
+  renderLesson();
+});
+moduleBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    moduleBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentModule = btn.dataset.module;
+    trackInteraction(currentModule);
+    saveStyleToFile();
+    renderLesson();
+  });
+});
+sendBtn.addEventListener('click', () => {
+  const text = chatInput.value.trim();
+  if (text) askAI(text);
+});
+chatInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const text = chatInput.value.trim();
+    if (text) askAI(text);
+  }
+});
+micBtn.addEventListener('click', toggleListening);
+
+// Ses hızı/tonu ayarı
+const voiceSetBtn = document.getElementById('voiceSetBtn');
+if (voiceSetBtn) {
+  voiceSetBtn.addEventListener('click', () => {
+    let curRate = 1.0, curPitch = 1.0;
+    try {
+      curRate = parseFloat(localStorage.getItem('aven-rate')) || 1.0;
+      curPitch = parseFloat(localStorage.getItem('aven-pitch')) || 1.0;
+    } catch (e) {}
+    const rate = prompt(uiText('voiceSetRatePrompt') + curRate, curRate);
+    if (rate !== null && !isNaN(parseFloat(rate))) {
+      const r = Math.min(2, Math.max(0.5, parseFloat(rate)));
+      localStorage.setItem('aven-rate', r);
+    }
+    const pitch = prompt(uiText('voiceSetPitchPrompt') + curPitch, curPitch);
+    if (pitch !== null && !isNaN(parseFloat(pitch))) {
+      const p = Math.min(2, Math.max(0.5, parseFloat(pitch)));
+      localStorage.setItem('aven-pitch', p);
+    }
+    try { window.ogretmenAPI.speak(uiText('voiceSetUpdated') + (localStorage.getItem('aven-rate')||'1') + uiText('voiceSetUpdated2') + (localStorage.getItem('aven-pitch')||'1'), voiceLanguage); } catch (e) {}
+  });
+}
+
+// Mobil sekmeler
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const target = document.getElementById(btn.dataset.tab);
+    document.querySelectorAll('#lessonArea, #chatPanel').forEach(p => p.classList.remove('tab-active'));
+    if (target) target.classList.add('tab-active');
+  });
+});
+
+// Başlat
+loadMemory();
+applyLanguage();
+refreshApiKeyBtn();
+renderLesson();
+teacherSpeech.textContent = uiText('teacherGreetingBubble');
+addMsg(uiText('initialGreeting'), 'ai');
+
+</script>
+  <script type="module">
+// tts-plugin/index.js
+// @capacitor/core'a bağımlılığı olmayan, doğrudan Web Speech API (speechSynthesis)
+// kullanan basit bir TTS sarmalayıcı. Hem Android WebView'da hem tarayıcıda çalışır.
+// Capacitor native TTS'e ihtiyaç yoktur çünkü speechSynthesis Android WebView'da desteklenir.
+
+class TextToSpeech {
+  constructor() {
+    this.speechSynthesis = ('speechSynthesis' in window) ? window.speechSynthesis : null;
+    this.supportedVoices = null;
+    if (this.speechSynthesis) {
+      // Bazı tarayıcılar sesleri asenkron yükler
+      const load = () => { this.supportedVoices = this.speechSynthesis.getVoices(); };
+      load();
+      if (this.speechSynthesis.onvoiceschanged !== undefined) {
+        this.speechSynthesis.onvoiceschanged = load;
+      }
+    }
+  }
+
+  isAvailable() {
+    return !!this.speechSynthesis;
+  }
+
+  async speak(options) {
+    if (!this.speechSynthesis) {
+      throw new Error('SpeechSynthesis API not available in this browser.');
+    }
+    this.stop();
+    const { text, lang, rate, pitch, volume } = options || {};
+    const utterance = new SpeechSynthesisUtterance(text);
+    if (lang) utterance.lang = lang;
+    if (rate !== undefined) utterance.rate = Math.min(10, Math.max(0.1, rate));
+    if (pitch !== undefined) utterance.pitch = Math.min(2, Math.max(0, pitch));
+    if (volume !== undefined) utterance.volume = Math.min(1, Math.max(0, volume));
+    // Dil için uygun sesi seçmeye çalış
+    if (lang && this.supportedVoices && this.supportedVoices.length) {
+      const match = this.supportedVoices.find(v => v.lang && v.lang.toLowerCase().startsWith(lang.toLowerCase().split('-')[0]));
+      if (match) utterance.voice = match;
+    }
+    return new Promise((resolve, reject) => {
+      utterance.onend = () => resolve();
+      utterance.onerror = (e) => reject(e);
+      this.speechSynthesis.speak(utterance);
+    });
+  }
+
+  stop() {
+    if (this.speechSynthesis) {
+      this.speechSynthesis.cancel();
+    }
+  }
+
+  getSupportedLanguages() {
+    const voices = this.speechSynthesis ? this.speechSynthesis.getVoices() : [];
+    const languages = voices.map(v => v.lang).filter((v, i, a) => a.indexOf(v) === i);
+    return { languages };
+  }
+}
+
+// Global olarak erişilebilir yap (renderer.js window.Capacitor.Plugins.TextToSpeech arıyor)
+const instance = new TextToSpeech();
+if (window.Capacitor && window.Capacitor.Plugins) {
+  window.Capacitor.Plugins.TextToSpeech = instance;
+} else if (window.Capacitor) {
+  window.Capacitor.Plugins = window.Capacitor.Plugins || {};
+  window.Capacitor.Plugins.TextToSpeech = instance;
+}
+// Her durumda global erişim
+window.TextToSpeech = instance;
+
+export { TextToSpeech };
+export default instance;
+
+</script>
+  <script>
+// updater.js
+// Ingilizce Ogretmeni Aven - OTA (Over-The-Air) guncelleme kontrolu.
+// Uygulama acilista GitHub'dan en son surumu kontrol eder,
+// fark varsa kullaniciya bildirim gosterir, onaylayinca yeni app.html'i
+// cihaz depolamasina indirip yeniden baslatir.
+//
+// Barindirma: GitHub 'ota' branch'i -> raw.githubusercontent.com
+// Mevcut surum: window.APP_VERSION (build script enjekte eder)
+
+(function () {
+  'use strict';
+
+  // Kullanici semihkayags9-crypto reposu; ota branch'i guncellemeleri icerir.
+  var REPO = 'semihkayags9-crypto/ingilizce-ogretmeni';
+  var OTA_BRANCH = 'ota';
+  var VERSION_URL = 'https://raw.githubusercontent.com/' + REPO + '/' + OTA_BRANCH + '/version.json';
+  var APP_URL = 'https://raw.githubusercontent.com/' + REPO + '/' + OTA_BRANCH + '/app.html';
+
+  var VERSION_KEY = 'aven-app-version';
+  var UPDATES_DIR = 'aven-updates';
+  var FILE_NAME = 'app.html';
+
+  // Build script bu degeri enjekte eder (tarih + commit hash).
+  var MEVCUT_SURUM = window.APP_VERSION || '0';
+
+  function log(msg) { try { console.log('[updater]', msg); } catch (e) {} }
+
+  async function fetchJson(url) {
+    var res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }
+
+  async function fetchText(url) {
+    var res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.text();
+  }
+
+  // Mevcut kullanici surumunu localStorage'dan oku; yoksa gomulu surumu kullan
+  function getYerelSurum() {
+    try {
+      return localStorage.getItem(VERSION_KEY) || MEVCUT_SURUM;
+    } catch (e) { return MEVCUT_SURUM; }
+  }
+
+  // Yeni app.html'i cihaz depolamasina yaz (DATA klasoru)
+  async function yeniAppYiYaz(html) {
+    var cap = window.Capacitor;
+    var FS = cap && cap.Plugins && cap.Plugins.Filesystem;
+    if (!FS) {
+      // Web ortaminda test: localStorage'a da yaz (istatistik icin, gercek guncelleme degil)
+      log('Native degil, guncelleme dosyasi yazilamadi (web modu)');
+      return false;
+    }
+    // Klasoru olustur (varsa hata verir, yut)
+    try { await FS.mkdir({ path: UPDATES_DIR, directory: 'DATA' }); } catch (e) {}
+    await FS.writeFile({
+      path: UPDATES_DIR + '/' + FILE_NAME,
+      data: html,
+      directory: 'DATA',
+      encoding: 'utf8'
+    });
+    return true;
+  }
+
+  // Kullaniciya bildirim goster + onay al
+  function bildirimGoster(yeniSurum) {
+    return new Promise(function (resolve) {
+      var overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:99999;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;';
+      var kutu = document.createElement('div');
+      kutu.style.cssText = 'background:#fff;border-radius:16px;padding:24px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,0.3);';
+      kutu.innerHTML =
+        '<div style="font-size:40px;margin-bottom:8px;">🔄</div>' +
+        '<div style="font-size:18px;font-weight:700;color:#1a1a1a;margin-bottom:6px;">Yeni güncelleme var!</div>' +
+        '<div style="font-size:14px;color:#555;margin-bottom:16px;">İngilizce Öğretmeni Aven güncellenmiş sürümü yüklendi. Şimdi uygula?</div>' +
+        '<div style="display:flex;gap:10px;justify-content:center;">' +
+        '<button id="upd-simdi" style="flex:1;padding:12px;background:#1a73e8;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">Şimdi Güncelle</button>' +
+        '<button id="upd-sonra" style="flex:1;padding:12px;background:#e9ecef;color:#333;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">Sonra</button>' +
+        '</div>';
+      overlay.appendChild(kutu);
+      document.body.appendChild(overlay);
+
+      var simdi = kutu.querySelector('#upd-simdi');
+      var sonra = kutu.querySelector('#upd-sonra');
+      simdi.addEventListener('click', function () { overlay.remove(); resolve(true); });
+      sonra.addEventListener('click', function () { overlay.remove(); resolve(false); });
+    });
+  }
+
+  async function guncellemeyiKontrolEt() {
+    try {
+      // Sadece native ortamda calis (web testi icin engelleme yok, ama sessiz gec)
+      var cap = window.Capacitor;
+      var isNative = cap && cap.isNativePlatform && cap.isNativePlatform();
+
+      var yerel = getYerelSurum();
+
+      var uzak;
+      try {
+        uzak = await fetchJson(VERSION_URL);
+      } catch (e) {
+        log('Surum dosyasi alinamadi (internet yok olabilir):', e.message);
+        return;
+      }
+
+      var yeniSurum = String(uzak.version || '0');
+      if (yeniSurum === yerel) {
+        log('Guncel surumdesin:', yeniSurum);
+        return;
+      }
+      if (!isNative) {
+        log('Native degil ama yeni surum var (gosterilmiyor):', yeniSurum);
+        return;
+      }
+
+      log('Yeni surum bulundu:', yeniSurum, '(yerel:', yerel + ')');
+      var onay = await bildirimGoster(yeniSurum);
+      if (!onay) { log('Kullanici erteledi'); return; }
+
+      // Yeni app.html'i indir
+      var html = await fetchText(APP_URL);
+      var yazildi = await yeniAppYiYaz(html);
+      if (!yazildi) { log('Yazma basarisiz'); return; }
+
+      // Surumu kaydet ve yeniden baslat
+      try { localStorage.setItem(VERSION_KEY, yeniSurum); } catch (e) {}
+      log('Guncelleme kuruldu:', yeniSurum);
+      // Guncel app.html'i WebView'da yeniden yukle (dogrudan data yolundan)
+      await appYiYenidenYukle();
+    } catch (err) {
+      log('Guncelleme kontrol hatasi:', err.message);
+    }
+  }
+
+  // Indirilen yeni app.html'i WebView'da yukle (bootstrap'e donme, dogrudan hedefle)
+  async function appYiYenidenYukle() {
+    var cap = window.Capacitor;
+    var FS = cap && cap.Plugins && cap.Plugins.Filesystem;
+    if (!FS) { location.reload(); return; }
+    try {
+      var uri = await FS.getUri({ path: UPDATES_DIR + '/' + FILE_NAME, directory: 'DATA' });
+      var webUrl = cap.convertFileSrc(uri.uri);
+      window.location.href = webUrl;
+    } catch (e) {
+      log('Yeniden baslatma hatasi, reload:', e.message);
+      location.reload();
+    }
+  }
+
+  // Uygulama tamamen yuklendikten sonra calis
+  function baslat() {
+    // Uygulama arayuzunun olusmasini bekle (DOM + renderer.js basladiysa)
+    var deneme = 0;
+    var bekleyen = setInterval(function () {
+      deneme++;
+      // Arayuz hazir mi? (renderer.js'in UI icin bir element biraktigi kabul edilir)
+      // Guvenli kontrol: bir kac saniye bekleyip calistir
+      if (deneme >= 2) {
+        clearInterval(bekleyen);
+        guncellemeyiKontrolEt();
+      }
+    }, 1500);
+  }
+
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    baslat();
+  } else {
+    document.addEventListener('DOMContentLoaded', baslat);
+  }
+})();
+
+</script>
+</body>
+</html>
