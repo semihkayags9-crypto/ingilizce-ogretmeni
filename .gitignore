@@ -6,6 +6,7 @@ node_modules/
 
 # Derleme ciktilari
 dist/
+src/app.html
 
 # Piper ikili dosyalari (buyuk, ayrica indirilir)
 piper/piper

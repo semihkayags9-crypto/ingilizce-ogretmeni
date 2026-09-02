@@ -32,6 +32,9 @@ jobs:
       - name: npm bagimliliklarini kur
         run: npm install
 
+      - name: Uygulamayi tek dosyada derle (app.html)
+        run: node build-app.js
+
       - name: Capacitor web assetlerini senkronize et
         run: npx cap sync android
 
@@ -50,3 +53,19 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: dist/Aven-Ingilizce.apk
+
+      - name: OTA branch'ine guncelleme yukle (her push'ta)
+        run: |
+          cp src/app.html ./ota-app.html
+          COMMIT=$(git rev-parse --short HEAD)
+          TARIH=$(date -u +%Y%m%d)
+          echo "{\"version\":\"$COMMIT-$TARIH\",\"updatedAt\":\"$(date -u +%FT%TZ)\"}" > version.json
+          echo "surum: $COMMIT-$TARIH"
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git checkout --orphan ota
+          git rm -rf . --quiet || true
+          cp ota-app.html app.html
+          git add app.html version.json
+          git commit -m "OTA guncelleme: $COMMIT-$TARIH"
+          git push -f origin ota
