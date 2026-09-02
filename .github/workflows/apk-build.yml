@@ -56,18 +56,19 @@ jobs:
 
       - name: OTA branch'ine guncelleme yukle (her push'ta)
         run: |
-          cp src/app.html ./ota-app.html
           COMMIT=$(git rev-parse --short HEAD)
           TARIH=$(date -u +%Y%m%d)
           echo "{\"version\":\"$COMMIT-$TARIH\",\"updatedAt\":\"$(date -u +%FT%TZ)\"}" > version.json
           echo "surum: $COMMIT-$TARIH"
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+          # app.html'i git checkout temizliginden once /tmp'e tasi (git rm hepsini siler)
+          cp src/app.html /tmp/ota-app.html
           # ota branch'i varsa ona gec (orphan hata verirdi), yoksa olustur
           git checkout ota 2>/dev/null || git checkout --orphan ota
           # calisma agacini temizle (sadece app.html + version.json kalsin)
           git rm -rf . --quiet || true
-          cp ota-app.html app.html
+          cp /tmp/ota-app.html app.html
           git add app.html version.json
           # degisiklik yoksa (ayni surum) commit etme, yoksa pull hata verir
           if git diff --cached --quiet; then echo "OTA degisiklik yok"; else git commit -m "OTA guncelleme: $COMMIT-$TARIH"; fi
