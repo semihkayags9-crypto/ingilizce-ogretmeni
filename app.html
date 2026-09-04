@@ -2016,6 +2016,8 @@ async function askAI(text, voiceMode) {
     teacherSpeech.textContent = cleanReply;
     const voiceAvenText = document.getElementById('vcpMsgEn');
     if (voiceAvenText) voiceAvenText.textContent = cleanReply;
+    const voiceAvenTr = document.getElementById('vcpMsgTr');
+    if (voiceAvenTr) voiceAvenTr.textContent = voiceLanguage === 'en-US' ? '' : cleanReply;
     // Aven İngilizce öğretmeni: cevabı İngilizce telaffuzla oku (voiceLanguage tr olsa bile İngilizce kelimeler doğru okunsun)
     // Tam sesli sohbet: Aven cevabi bitince (onDone), sesli mod hala aktifse otomatik tekrar dinlemeye basla
     const vol = (localStorage.getItem('ingilizce-ogretmeni-voice-lang') || 'tr-TR') === 'en-US';
@@ -2045,6 +2047,13 @@ function openVoiceChat() {
   const chat = document.getElementById('chatPanel');
   if (vcp) vcp.hidden = false;
   if (chat) chat.hidden = true;
+  // model-viewer gizli parenttan cikinca boyutunu yeniden hesaplasin
+  const robot = document.getElementById('vcpRobot');
+  if (robot) {
+    requestAnimationFrame(() => {
+      try { if (robot.resize) robot.resize(); } catch (e) {}
+    });
+  }
 }
 function closeVoiceChat() {
   const vcp = document.getElementById('voiceChatPanel');
