@@ -1236,17 +1236,16 @@ if (!window.ogretmenAPI) {
   }
 
   window.ogretmenAPI = {
-    speak(text, lang) {
+    speak(text, lang, onDone) {
       const rate = parseFloat(localStorage.getItem('aven-rate')) || 1.05;
       const pitch = parseFloat(localStorage.getItem('aven-pitch')) || 1.0;
       const useLang = lang || voiceLanguage;
       const cap = window.Capacitor;
       const isNative = cap && cap.isNativePlatform && cap.isNativePlatform();
       if (isNative) {
-        // Android/iOS: native TTS'i dogrudan toNative ile cagir (registerPlugin proxy'si native'e baglanmiyor gorunuyor)
         const capToNative = cap && cap.toNative;
         if (capToNative) {
-          capToNative('TextToSpeech', 'speak', { text: text, lang: useLang, rate: rate, pitch: pitch }, function () {});
+          capToNative('TextToSpeech', 'speak', { text: text, lang: useLang, rate: rate, pitch: pitch }, function () { if (onDone) onDone(); });
           return;
         }
       }
@@ -1895,13 +1894,21 @@ async function askAI(text) {
   try {
     // Bağlam bilgisi + son mesaj geçmişi
     const contextNote = buildContextPrompt();
-    const reply = await window.ogretmenAPI.askAI(text, 'en', contextNote, chatHistory.slice(-6));
+    const reply = await window.ogretmenAPI.askAI(text, voiceLanguage === 'en-US' ? 'en' : 'tr', contextNote, chatHistory.slice(-6));
     const cleanReply = cleanAiText(reply);
     addMsg(cleanReply, 'ai');
     thinking.remove();
     teacherSpeech.textContent = cleanReply;
     // Aven İngilizce öğretmeni: cevabı İngilizce telaffuzla oku (voiceLanguage tr olsa bile İngilizce kelimeler doğru okunsun)
-    window.ogretmenAPI.speak(cleanReply, 'en-US');
+    // Tam sesli sohbet: Aven cevabi bitince (onDone), sesli mod hala aktifse otomatik tekrar dinlemeye basla
+    const vol = (localStorage.getItem('ingilizce-ogretmeni-voice-lang') || 'tr-TR') === 'en-US';
+    window.ogretmenAPI.speak(cleanReply, 'en-US', () => {
+      if (isListening) {
+        const _c = window.Capacitor;
+        const _n = _c && _c.isNativePlatform && _c.isNativePlatform();
+        try { if (_n) { _startNativeVoice(); } else { _startVoice(); } } catch (e) {}
+      }
+    });
   } catch (e) {
     thinking.textContent = uiText('apiKeyMissing');
   }
@@ -1938,83 +1945,35 @@ let lastLevel = 0;
 let voiceStream = null;
 let nvPartialText = '';
 
-function _startVoice(stream) {
-  if (voiceStream) { voiceStream.getTracks().forEach(t => t.stop()); }  // eski stream'i kapat
-  voiceStream = stream;
+function _startVoice() {
   isListening = true;
   micBtn.textContent = uiText('micBtnStop');
   micBtn.classList.add('listening');
-  audioChunks = [];
-  try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (!analyser) {
-      analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 512;
-      analyser.smoothingTimeConstant = 0.6;
-    }
-    const src = audioCtx.createMediaStreamSource(stream);
-    src.connect(analyser);
-  } catch (e) {}
-  mediaRecorder = new MediaRecorder(stream);
-  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-  mediaRecorder.onstop = async () => {
-    const blob = new Blob(audioChunks, { type: 'audio/webm' });
-    const buf = await blob.arrayBuffer();
-    const lang = voiceLanguage === 'en-US' ? 'en' : 'tr';
-    try {
-      const text = await window.ogretmenAPI.transcribeAudio(buf, 'audio/webm', lang);
-      audioChunks = [];
-      if (text && text.trim()) { chatInput.value = text.trim(); askAI(text.trim()); }
-    } catch (e) { addMsg(uiText('transcribeFailed') + e.message, 'ai'); }
-    // Konuşma modu açıksa otomatik yeniden dinlemeye başla (sürekli sohbet)
-    if (isListening) {
-      setTimeout(async () => {
-        try {
-          const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-          _startVoice(s);
-        } catch (e) {}
-      }, 500);
-    }
-  };
-  mediaRecorder.start();
-  // Ses seviyesini örnekle; 1.2 sn sessizlik olunca otomatik gönder
-  const buf = new Uint8Array(analyser ? analyser.frequencyBinCount : 0);
-  const checkTimer = setInterval(() => {
-    if (!isListening) { clearInterval(checkTimer); return; }
-    let level = 0;
-    if (analyser) {
-      analyser.getByteFrequencyData(buf);
-      let sum = 0; for (let i = 0; i < buf.length; i++) sum += buf[i];
-      level = sum / buf.length;
-    }
-    if (level > 18) { speaking = true; silentMs = 0; }
-    else if (speaking) { silentMs += 120; if (silentMs >= 1200) {
-      clearInterval(checkTimer);
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-    } }
-    lastLevel = level;
-  }, 120);
+  nvPartialText = '';
+  const cap = window.Capacitor;
+  const SR = cap && cap.Plugins && cap.Plugins.SpeechRecognition;
+  if (SR && SR.start) {
+    SR.addListener('partialResults', data => {
+      if (data && data.matches && data.matches.length) { nvPartialText = data.matches[0]; }
+    }).catch(function () {});
+    SR.start({ lang: voiceLanguage === 'en-US' ? 'en-US' : 'tr-TR', partialResults: true }).catch(function () {});
+  }
 }
-
 async function _stopVoice() {
   const cap = window.Capacitor;
   const isNative = cap && cap.isNativePlatform && cap.isNativePlatform();
   if (isNative) {
-    // native: speech-recognition'i durdur, varsa son metni AI'ya gonder
+    // Kullanici bilerek durduruyor -> listeningState:stopped tetiklenince
+    // otomatik AI'ya gonderme (nvManualStop bayragi bunu engeller).
+    nvManualStop = true;
+    isListening = false;
+    micBtn.textContent = uiText('micBtnStart');
+    micBtn.classList.remove('listening');
     try {
       const SR = cap.Plugins && cap.Plugins.SpeechRecognition;
       if (SR && SR.stop) { await SR.stop(); }
     } catch (e) {}
-    // Final sonucun partialResults event'iyle donmesini bekle (onResults)
-    // Gurultulu ortamda sonuc geç gelir; biraz daha bekle.
-    await new Promise(r => setTimeout(r, 500));
-    const done = (nvPartialText || '').trim();
     nvPartialText = '';
-    isListening = false;
-    micBtn.textContent = uiText('micBtnStart');
-    micBtn.classList.remove('listening');
-    // Sadece kisa/rahatsiz edici metni AI'ya gonderme; anlamli ise gonder
-    if (done && done.length >= 2) { chatInput.value = done; askAI(done); }
     return;
   }
   if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
@@ -2024,7 +1983,15 @@ async function _stopVoice() {
   if (voiceStream) { voiceStream.getTracks().forEach(t => t.stop()); voiceStream = null; }
 }
 
-// Android/iOS: native SpeechRecognition ile konusmayi metne cevir
+// Android/iOS: native SpeechRecognition ile KESINTISIZ sesli sohbet.
+// Tek dokunusla baslar; konusma bitince (tanici kendiliginden durur) metin
+// otomatik AI'ya gider, cevap sesli okunur, cevap bitince tekrar dinlemeye
+// gecilir. Arada hicbir butona basilmaz (ChatGPT/Claude sesli mod gibi).
+let nvStateListenerReady = false;   // listeningState listener'i bir kez kurulur
+let nvPartialReady = false;         // partialResults listener'i bir kez kurulur
+let nvManualStop = false;           // kullanici bilerek durdurdu mu?
+let nvProcessing = false;           // AI cevabi beklenirken yeni dinleme baslatma
+
 async function _startNativeVoice() {
   const cap = window.Capacitor;
   const SR = cap.Plugins && cap.Plugins.SpeechRecognition;
@@ -2034,23 +2001,47 @@ async function _startNativeVoice() {
   const ok = perm && perm.speechRecognition === 'granted';
   if (!ok) { try { await SR.requestPermissions(); } catch (e) {} }
   isListening = true;
+  nvManualStop = false;
   micBtn.textContent = uiText('micBtnStop');
   micBtn.classList.add('listening');
-  // Dil: Turkce modda tr-TR, Ingilizce modda en-US. ASR destekliyorsa kullan.
+  // Dil: Turkce modda tr-TR, Ingilizce modda en-US.
   const lang = voiceLanguage === 'en-US' ? 'en-US' : 'tr-TR';
   nvPartialText = '';
-  // Canli kismi sonuclari goster + sakla; konusma bitince (stop) final AI'ya gider.
-  const partialListener = (data) => {
-    if (data && data.matches && data.matches.length) {
-      const cand = data.matches[0] || '';
-      // Gecikme/arka plan gurultusu: cok kisa ya da bos sonuc yoksay
-      if (cand && cand.trim().length >= 2) {
-        nvPartialText = cand.trim();
-        if (chatInput) chatInput.value = nvPartialText;
+  // Canli kismi sonuclari goster + sakla. Listener'i SADECE bir kez kur.
+  if (!nvPartialReady) {
+    nvPartialReady = true;
+    try { await SR.addListener('partialResults', (data) => {
+      if (data && data.matches && data.matches.length) {
+        const cand = data.matches[0] || '';
+        if (cand && cand.trim().length >= 2) {
+          nvPartialText = cand.trim();
+          if (chatInput) chatInput.value = nvPartialText;
+        }
       }
-    }
-  };
-  try { await SR.addListener('partialResults', partialListener); } catch (e) {}
+    }); } catch (e) {}
+  }
+  // Tanici durdugunda (konusma bitti / sessizlik) otomatik isle.
+  // Listener'i SADECE bir kez kur - her baslatista yeniden eklenirse birikir.
+  if (!nvStateListenerReady) {
+    nvStateListenerReady = true;
+    try { await SR.addListener('listeningState', async (data) => {
+      if (!data || data.status !== 'stopped') return;
+      if (!isListening || nvManualStop) return;   // bilerek durdurulduysa isleme
+      if (nvProcessing) return;                    // AI cevabi bekleniyor
+      const done = (nvPartialText || '').trim();
+      nvPartialText = '';
+      if (done && done.length >= 2) {
+        nvProcessing = true;
+        try { await askAI(done); } catch (e) {}
+        nvProcessing = false;
+        // askAI icindeki speak onDone, isListening hala true ise _startNativeVoice'i
+        // tekrar cagirir -> kesintisiz dongu. Burada ekstra baslatma YOK.
+      } else {
+        // Anlamli bir sey duyulmadi; kisa bekleyip tekrar dinle.
+        setTimeout(() => { if (isListening && !nvManualStop) { _startNativeVoice().catch(() => {}); } }, 400);
+      }
+    }); } catch (e) {}
+  }
   await SR.start({ lang: lang, partialResults: true, maxResults: 3 });
 }
 
