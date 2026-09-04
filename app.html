@@ -345,7 +345,7 @@
     .dialog { width: min(92vw, 420px); }
   }
 </style>
-<script>window.APP_VERSION="07b3ebb-20260902";</script>
+<script>window.APP_VERSION="07b3ebb-20260904";</script>
 </head>
 <body>
 
@@ -1219,7 +1219,13 @@ window.ENGLISH_LESSONS.C1 = {
 // ---------------------------------------------------------------
 // 0.5 ANDROID FALLBACK (Capacitor / WebView)
 // ---------------------------------------------------------------
+// Kendi native TTS plugin'imiz AvenTts, Java tarafinda MainActivity'de
+// registerPlugin(AvenTtsPlugin.class) ile kayitlidir. Capacitor native'de bu
+// plugin'i Cap.Plugins.AvenTts'e OTOMATIK ekler; JS'te elle register cagrisina
+// gerek yok (elle cagri "not implemented on android" hatasina yol acar).
+
 if (!window.ogretmenAPI) {
+
   const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
   const GROQ_TRANSCRIBE_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
   const GROQ_MODEL = 'openai/gpt-oss-20b';
@@ -1234,14 +1240,22 @@ if (!window.ogretmenAPI) {
       const rate = parseFloat(localStorage.getItem('aven-rate')) || 1.05;
       const pitch = parseFloat(localStorage.getItem('aven-pitch')) || 1.0;
       const useLang = lang || voiceLanguage;
+      const cap = window.Capacitor;
+      const isNative = cap && cap.isNativePlatform && cap.isNativePlatform();
+      if (isNative) {
+        // Android/iOS: native TTS'i dogrudan toNative ile cagir (registerPlugin proxy'si native'e baglanmiyor gorunuyor)
+        const capToNative = cap && cap.toNative;
+        if (capToNative) {
+          capToNative('TextToSpeech', 'speak', { text: text, lang: useLang, rate: rate, pitch: pitch }, function () {});
+          return;
+        }
+      }
+      // web/Electron: Web Speech API
       const doWebSpeak = () => {
         try {
           if (!window.speechSynthesis) return;
           const synth = window.speechSynthesis;
           synth.cancel();
-          // İngilizce örnekler genelde tırnak içinde gelir -> onları en-US ile oku,
-          // kalan açıklamayı ana dille (tr-TR) oku. Böylece İngilizce kelimeler
-          // Türkçe telaffuzla okunmaz, konuşma akıcı olur.
           const parts = [];
           const re = /"([^"]*)"|'([^']*)'|“([^”]*)”/g;
           let last = 0, m;
@@ -1261,8 +1275,6 @@ if (!window.ogretmenAPI) {
           }
         } catch (e) { }
       };
-      // Web Speech her ortamda (tarayıcı + Android WebView + Capacitor) çalışır.
-      // Capacitor native plugin'e güvenmek yerine doğrudan speechSynthesis kullan.
       doWebSpeak();
     },
     async askAI(text, lang, contextNote, history) {
@@ -1886,7 +1898,17 @@ async function askAI(text) {
 // 5. Sesli konuşma (mikrofon)
 // ---------------------------------------------------------------
 async function toggleListening() {
-  if (isListening) { _stopVoice(); return; }
+  const cap = window.Capacitor;
+  const isNative = cap && cap.isNativePlatform && cap.isNativePlatform();
+  if (isNative) {
+    // Android/iOS: native SpeechRecognition (getUserMedia WebView'da calismaz)
+    if (isListening) { await _stopVoice(); return; }
+    try {
+      await _startNativeVoice();
+    } catch (e) { alert(uiText('micPermissionMsg')); }
+    return;
+  }
+  if (isListening) { await _stopVoice(); return; }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     _startVoice(stream);
@@ -1899,6 +1921,7 @@ let silentMs = 0;
 let speaking = false;
 let lastLevel = 0;
 let voiceStream = null;
+let nvPartialText = '';
 
 function _startVoice(stream) {
   if (voiceStream) { voiceStream.getTracks().forEach(t => t.stop()); }  // eski stream'i kapat
@@ -1958,12 +1981,62 @@ function _startVoice(stream) {
   }, 120);
 }
 
-function _stopVoice() {
+async function _stopVoice() {
+  const cap = window.Capacitor;
+  const isNative = cap && cap.isNativePlatform && cap.isNativePlatform();
+  if (isNative) {
+    // native: speech-recognition'i durdur, varsa son metni AI'ya gonder
+    try {
+      const SR = cap.Plugins && cap.Plugins.SpeechRecognition;
+      if (SR && SR.stop) { await SR.stop(); }
+    } catch (e) {}
+    // Final sonucun partialResults event'iyle donmesini bekle (onResults)
+    // Gurultulu ortamda sonuc geç gelir; biraz daha bekle.
+    await new Promise(r => setTimeout(r, 500));
+    const done = (nvPartialText || '').trim();
+    nvPartialText = '';
+    isListening = false;
+    micBtn.textContent = uiText('micBtnStart');
+    micBtn.classList.remove('listening');
+    // Sadece kisa/rahatsiz edici metni AI'ya gonderme; anlamli ise gonder
+    if (done && done.length >= 2) { chatInput.value = done; askAI(done); }
+    return;
+  }
   if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
   isListening = false;
   micBtn.textContent = uiText('micBtnStart');
   micBtn.classList.remove('listening');
   if (voiceStream) { voiceStream.getTracks().forEach(t => t.stop()); voiceStream = null; }
+}
+
+// Android/iOS: native SpeechRecognition ile konusmayi metne cevir
+async function _startNativeVoice() {
+  const cap = window.Capacitor;
+  const SR = cap.Plugins && cap.Plugins.SpeechRecognition;
+  if (!SR || !SR.start) throw new Error('SpeechRecognition yok');
+  let perm = null;
+  try { perm = await SR.checkPermissions(); } catch (e) {}
+  const ok = perm && perm.speechRecognition === 'granted';
+  if (!ok) { try { await SR.requestPermissions(); } catch (e) {} }
+  isListening = true;
+  micBtn.textContent = uiText('micBtnStop');
+  micBtn.classList.add('listening');
+  // Dil: Turkce modda tr-TR, Ingilizce modda en-US. ASR destekliyorsa kullan.
+  const lang = voiceLanguage === 'en-US' ? 'en-US' : 'tr-TR';
+  nvPartialText = '';
+  // Canli kismi sonuclari goster + sakla; konusma bitince (stop) final AI'ya gider.
+  const partialListener = (data) => {
+    if (data && data.matches && data.matches.length) {
+      const cand = data.matches[0] || '';
+      // Gecikme/arka plan gurultusu: cok kisa ya da bos sonuc yoksay
+      if (cand && cand.trim().length >= 2) {
+        nvPartialText = cand.trim();
+        if (chatInput) chatInput.value = nvPartialText;
+      }
+    }
+  };
+  try { await SR.addListener('partialResults', partialListener); } catch (e) {}
+  await SR.start({ lang: lang, partialResults: true, maxResults: 3 });
 }
 
 async function refreshApiKeyBtn() {
@@ -2142,6 +2215,30 @@ refreshApiKeyBtn();
 renderLesson();
 teacherSpeech.textContent = uiText('teacherGreetingBubble');
 addMsg(uiText('initialGreeting'), 'ai');
+
+// --- GARANTI TTS: Android'de ogretmenAPI.speak'in toNative ile native TTS'e gitmesini sagla. ---
+// window.ogretmenAPI (Electron main.js/preload ya da baska bir script) zaten tanimli olabilir;
+// o durumda renderer.js icindeki if(!window.ogretmenAPI) blogu atlanir ve eski doWebSpeak yuklu kalir.
+// Bu override, hangi ogretmenAPI olursa olsun, Android'de toNative('TextToSpeech','speak') kullanir.
+(function () {
+  var base = window.ogretmenAPI;
+  var oldSpeak = base && base.speak;
+  window.ogretmenAPI = window.ogretmenAPI || {};
+  window.ogretmenAPI.speak = function (text, lang) {
+    try {
+      var cap = window.Capacitor;
+      var isNative = cap && cap.isNativePlatform && cap.isNativePlatform();
+      if (isNative && cap.toNative) {
+        var rate = parseFloat(localStorage.getItem('aven-rate')) || 1.05;
+        var pitch = parseFloat(localStorage.getItem('aven-pitch')) || 1.0;
+        var useLang = lang || 'en-US';
+        cap.toNative('TextToSpeech', 'speak', { text: text, lang: useLang, rate: rate, pitch: pitch }, function () {});
+        return;
+      }
+    } catch (e) {}
+    if (oldSpeak) oldSpeak.call(this, text, lang);
+  };
+})();
 
 </script>
   <script type="module">
