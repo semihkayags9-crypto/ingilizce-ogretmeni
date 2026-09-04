@@ -1613,8 +1613,16 @@ function renderLesson() {
       const feedback = box.querySelector('.exercise-feedback');
       if (btn.dataset.answer) {
         const input = box.querySelector('.exercise-input');
-        const userAnswer = input.value.trim().toLowerCase();
-        const correct = btn.dataset.answer.toLowerCase();
+        // Kullanicinin cevabini ve beklenen cevabi NORMALIZE et:
+        // noktalama, typographic apostrophe, fazla bosluk, buyuk/kucuk harf farklarini yok say.
+        const norm = (s) => s
+          .toLowerCase()
+          .replace(/['’`]/g, "'")
+          .replace(/[.,!?;:"“”«»()\[\]{}]/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        const userAnswer = norm(input.value);
+        const correct = norm(btn.dataset.answer);
         if (userAnswer === correct) {
           feedback.textContent = uiText('correctMsg');
           feedback.className = 'exercise-feedback correct';
