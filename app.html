@@ -1661,6 +1661,11 @@ function cleanAiText(raw) {
   t = t.replace(/[ \t]{2,}/g, ' ');            // fazla bosluk/tab (yeni satirlari KORU)
   t = t.replace(/[ \t]+$/gm, '');              // satir sonu bosluklar
   t = t.replace(/\n{3,}/g, '\n\n');            // fazla satir
+  // Konusma icin: sembol/ozel karakterleri temizle (TTS bunlari okuyor)
+  t = t.replace(/[*_#~|>]/g, ' ');             // * _ # ~ | >
+  t = t.replace(/[\/\\]+/g, ' ');              // / ve \ (eğik çizgi)
+  t = t.replace(/[→←↑↓•·]/g, ' ');             // ok/buton sembolleri
+  t = t.replace(/\s{2,}/g, ' ');               // fazla bosluk
   return t.trim();
 }
 
@@ -1895,7 +1900,8 @@ async function askAI(text) {
     addMsg(cleanReply, 'ai');
     thinking.remove();
     teacherSpeech.textContent = cleanReply;
-    window.ogretmenAPI.speak(cleanReply, voiceLanguage);
+    // Aven İngilizce öğretmeni: cevabı İngilizce telaffuzla oku (voiceLanguage tr olsa bile İngilizce kelimeler doğru okunsun)
+    window.ogretmenAPI.speak(cleanReply, 'en-US');
   } catch (e) {
     thinking.textContent = uiText('apiKeyMissing');
   }
