@@ -2023,7 +2023,7 @@ async function askAI(text, voiceMode) {
     const vol = (localStorage.getItem('ingilizce-ogretmeni-voice-lang') || 'tr-TR') === 'en-US';
     const vcp = document.getElementById('voiceChatPanel');
     if (vcp && !vcp.hidden) vcp.classList.add('robot-talking');
-    window.ogretmenAPI.speak(cleanReply, 'en-US', () => {
+    window.ogretmenAPI.speak(cleanReply, voiceLanguage === 'en-US' ? 'en-US' : 'tr-TR', () => {
       if (vcp && !vcp.hidden) vcp.classList.remove('robot-talking');
       if (isListening) {
         const _c = window.Capacitor;
