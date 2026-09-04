@@ -1276,12 +1276,20 @@ if (!window.ogretmenAPI) {
       };
       doWebSpeak();
     },
-    async askAI(text, lang, contextNote, history) {
+    async askAI(text, lang, contextNote, history, voiceMode) {
       const key = getKey();
       if (!key) return 'API anahtarı bulunamadı. Sağ üstteki ⚙ düğmesinden Groq API anahtarını gir.';
+      // Sesli sohbette Aven KISA konusur: karşısındakini dinler, tek cümleyle cevap verir, soru sorar.
+      // Yazılı derste ders anlatabilir (uzun olabilir) ama sesli modda monolog YASAK.
+      const voiceRule = voiceMode
+        ? (lang === 'tr'
+          ? ' ŞU AN SESLİ KONUŞMA MODUNDASIN: ÇOK KISA cevap ver (EN FAZLA 1-2 kısa cümle, 15-20 kelime). Asla ders anlatma, asla liste/örnek yağdırma, asla uzun açıklama yapma. Öğrencinin söylediğine kısaca tepki ver, varsa hatasını tek cümleyle düzelt, sonra MUTLAKA kısa bir soru sor (örn. "What about you?", "Can you say that again?") ki konuşma karşılıklı sürsün. Öğrenciyi dinle, sıranı bekle, kafandakini boşaltma.'
+          : ' YOU ARE IN VOICE CONVERSATION MODE NOW: answer VERY SHORT (at most 1-2 short sentences, 15-20 words). Never give a lecture, never dump lists or examples, never give long explanations. React briefly to what the student said, correct any mistake in one short sentence, then ALWAYS ask a short follow-up question (e.g. "What about you?", "Can you say that again?") so the conversation stays two-way. Listen to the student, wait your turn, do not dump everything on your mind.')
+        : '';
       const system = (lang === 'tr'
         ? 'Sen Aven, İngilizce öğreten sabırlı, samimi ve canlı bir öğretmensin. Öğrencinin SEVİYESİNE GÖRE (A1-A2 başlangıç, B1-B2 orta, C1 ileri) ders anlatırsın: çok basit cümlelerle başlayıp öğrenci hazır oldukça zorlaştırırsın. Her derste YENİ KELİMELER öğretirsin (kelime haznesi geniş olsun — günlük hayat, okul, aile, yemek, seyahat, iş, teknoloji, duygular, hava, spor vb. konulardan), her kelime için 2-3 gerçek örnek cümle verirsin, doğru telaffuzu gösterirsin. Öğrenciye AKTİF ALIŞTIRMA yaptırırsın: "Şimdi bu kelimeyle bir cümle kur", "Bu cümleyi İngilizce söyler misin?" gibi. Öğrencinin hatalarını nazikçe düzeltir, nedenini kısaca açıklarsın, sonra doğru halini örnekle pekiştirirsin. Bir konuyu öğrettikten sonra mutlaka KISA BİR TEKRAR/ÖZET yaparsın ve öğrenciye devam edip etmeyeceğini sorarsın. İngilizce kelime ve örnek cümleleri HER ZAMAN çift tırnak içinde ver: "apple", "Hello, how are you?" gibi. Türkçe açıklarken İngilizce örnekleri bol kullan. SADECE düz, akıcı ve samimi metinle konuş. Asla markdown (**, *, #, _, ```, listeler), token sayısı, API adı, model adı, kod parçası ya da teknik bilgi yazma. Kısa, net ve öğretici cümleler kur. Öğrenci bir kelimeyi/konuyu anlamadıysa sabırla farklı bir örnekle tekrar açıkla.'
         : 'You are Aven, a patient, warm and lively English teacher. Teach according to the student\'s LEVEL (A1-A2 beginner, B1-B2 intermediate, C1 advanced): start with very simple sentences and gently increase difficulty as the student is ready. In every lesson teach NEW WORDS (broad vocabulary — everyday life, school, family, food, travel, work, technology, emotions, weather, sports etc.), give 2-3 real example sentences for each word, and show correct pronunciation. Give ACTIVE PRACTICE: "Now make a sentence with this word", "Can you say this in English?". Correct mistakes kindly, briefly explain why, then reinforce with a correct example. After teaching a topic always give a SHORT RECAP/SUMMARY and ask the student if they want to continue. ALWAYS put English words and example sentences inside double quotes, like "apple", "Hello, how are you?". Use plenty of English examples while explaining. Speak ONLY in clean, fluent, plain text. Never use markdown (**, *, #, _, ```, lists), token counts, API names, model names, code snippets, or any technical info. Keep sentences short, clear and instructive. If the student doesn\'t understand, patiently re-explain with a different example.')
+        + voiceRule
         + (contextNote ? '\n\n' + contextNote : '');
       const msgs = [{ role: 'system', content: system }];
       // Geçmiş mesajları ekle (bağlam kayması olmasın)
@@ -1298,7 +1306,7 @@ if (!window.ogretmenAPI) {
           model: GROQ_MODEL,
           messages: msgs,
           temperature: 0.7,
-          max_tokens: 280
+          max_tokens: voiceMode ? 60 : 280
         })
       });
       if (!res.ok) throw new Error('Groq API hatası: ' + res.status);
@@ -1884,7 +1892,7 @@ function buildContextPrompt() {
   return ctx;
 }
 
-async function askAI(text) {
+async function askAI(text, voiceMode) {
   addMsg(text, 'user');
   chatInput.value = '';
   const thinking = document.createElement('div');
@@ -1894,7 +1902,7 @@ async function askAI(text) {
   try {
     // Bağlam bilgisi + son mesaj geçmişi
     const contextNote = buildContextPrompt();
-    const reply = await window.ogretmenAPI.askAI(text, voiceLanguage === 'en-US' ? 'en' : 'tr', contextNote, chatHistory.slice(-6));
+    const reply = await window.ogretmenAPI.askAI(text, voiceLanguage === 'en-US' ? 'en' : 'tr', contextNote, chatHistory.slice(-6), voiceMode);
     const cleanReply = cleanAiText(reply);
     addMsg(cleanReply, 'ai');
     thinking.remove();
@@ -2032,7 +2040,7 @@ async function _startNativeVoice() {
       nvPartialText = '';
       if (done && done.length >= 2) {
         nvProcessing = true;
-        try { await askAI(done); } catch (e) {}
+        try { await askAI(done, true); } catch (e) {}
         nvProcessing = false;
         // askAI icindeki speak onDone, isListening hala true ise _startNativeVoice'i
         // tekrar cagirir -> kesintisiz dongu. Burada ekstra baslatma YOK.
