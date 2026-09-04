@@ -1298,7 +1298,8 @@ if (!window.ogretmenAPI) {
         body: JSON.stringify({
           model: GROQ_MODEL,
           messages: msgs,
-          temperature: 0.7
+          temperature: 0.7,
+          max_tokens: 280
         })
       });
       if (!res.ok) throw new Error('Groq API hatası: ' + res.status);
