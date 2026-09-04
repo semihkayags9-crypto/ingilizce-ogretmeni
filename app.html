@@ -1895,7 +1895,7 @@ async function askAI(text) {
   try {
     // Bağlam bilgisi + son mesaj geçmişi
     const contextNote = buildContextPrompt();
-    const reply = await window.ogretmenAPI.askAI(text, voiceLanguage === 'en-US' ? 'en' : 'tr', contextNote, chatHistory.slice(-6));
+    const reply = await window.ogretmenAPI.askAI(text, 'en', contextNote, chatHistory.slice(-6));
     const cleanReply = cleanAiText(reply);
     addMsg(cleanReply, 'ai');
     thinking.remove();
