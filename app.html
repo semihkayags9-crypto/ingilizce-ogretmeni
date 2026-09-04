@@ -133,6 +133,74 @@
   .speak-btn:hover { background: #e8f0ff; }
 
   /* Sağ panel: sohbet */
+  /* Sesli konuşma ekranı */
+  #voiceChatPanel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #fff;
+    min-width: 320px;
+  }
+  #voiceChatPanel[hidden] { display: none; }
+  .vcp-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px 10px;
+  }
+  .vcp-title { display: flex; align-items: center; gap: 10px; }
+  .vcp-av {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #3f6fd1; color: #fff; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px;
+  }
+  .vcp-title-txt { font-weight: 700; color: #24344c; font-size: 14px; line-height: 1.2; }
+  .vcp-status { display: flex; align-items: center; gap: 5px; color: #10a37f; font-size: 11px; font-weight: 600; }
+  .vcp-dot { width: 7px; height: 7px; border-radius: 50%; background: #10a37f; }
+  .vcp-close {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #f1f5fb; color: #64748b; border: none; font-size: 16px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .vcp-close:hover { background: #e2e8f0; }
+  .vcp-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 24px; gap: 20px; }
+  .vcp-robot-wrap { position: relative; }
+  .vcp-robot-ring {
+    width: 220px; height: 220px; border-radius: 50%; overflow: hidden;
+    background: radial-gradient(circle at 50% 30%, #ffffff, #c9dbf5 75%);
+    box-shadow: 0 8px 24px rgba(44, 83, 135, .18);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #vcpRobot { width: 100%; height: 100%; }
+  #voiceChatPanel.robot-talking .vcp-robot-ring { animation: vcpTalk .6s ease-in-out infinite alternate; }
+  @keyframes vcpTalk { from { transform: translateY(0) scale(1); } to { transform: translateY(-5px) scale(1.03); } }
+  .vcp-msg {
+    width: 100%; max-width: 340px; text-align: center;
+    background: #f0f6ff; border: 1px solid #dbe8fb; border-radius: 16px; padding: 16px 18px;
+  }
+  .vcp-msg-en { color: #24344c; font-size: 20px; font-weight: 700; line-height: 1.35; }
+  .vcp-msg-tr { color: #64748b; font-size: 14px; margin-top: 8px; }
+  .vcp-listen { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .vcp-wave { display: flex; align-items: flex-end; gap: 4px; height: 30px; }
+  .vcp-wave span {
+    width: 5px; height: 30px; border-radius: 3px; background: #3f6fd1;
+    animation: vcpWave 1s ease-in-out infinite; transform-origin: bottom;
+  }
+  .vcp-wave span:nth-child(2) { animation-delay: .15s; }
+  .vcp-wave span:nth-child(3) { animation-delay: .3s; }
+  .vcp-wave span:nth-child(4) { animation-delay: .45s; }
+  .vcp-wave span:nth-child(5) { animation-delay: .6s; }
+  @keyframes vcpWave { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+  .vcp-listen-txt { color: #64748b; font-size: 13px; font-weight: 500; }
+  .vcp-bottom { padding: 8px 24px 22px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .vcp-stop {
+    width: 58px; height: 58px; border-radius: 50%; border: none; cursor: pointer;
+    background: #e0546a; color: #fff; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 16px rgba(224, 84, 106, .35);
+  }
+  .vcp-stop svg { width: 26px; height: 26px; }
+  .vcp-stop:hover { background: #d94458; }
+  .vcp-stop-hint { color: #94a3b8; font-size: 11px; }
+
   #chatPanel {
     flex: 1;
     display: flex;
@@ -379,6 +447,45 @@
       <h2 id="lessonTitle"></h2>
       <p id="lessonDesc"></p>
       <div id="lessonBody"></div>
+    </div>
+  </div>
+
+  <!-- Sesli konuşma ekranı (ChatGPT/Claude sesli mod gibi - sade, eğitim odaklı) -->
+  <div id="voiceChatPanel" hidden>
+    <div class="vcp-topbar">
+      <div class="vcp-title">
+        <div class="vcp-av">A</div>
+        <div>
+          <div class="vcp-title-txt">Aven ile Sesli Konuşma</div>
+          <div class="vcp-status"><span class="vcp-dot"></span> Aktif</div>
+        </div>
+      </div>
+      <button id="vcpCloseBtn" class="vcp-close" title="Sesli konuşmayı kapat">✕</button>
+    </div>
+
+    <div class="vcp-body">
+      <div class="vcp-robot-wrap">
+        <div class="vcp-robot-ring">
+          <model-viewer id="vcpRobot" src="assets/aven-robot.glb" alt="Aven öğretmen robotu" camera-controls interaction-prompt="none"></model-viewer>
+        </div>
+      </div>
+
+      <div class="vcp-msg" id="vcpMsg">
+        <div class="vcp-msg-en" id="vcpMsgEn">Merhaba! Ben Aven, İngilizce öğretmenin.</div>
+        <div class="vcp-msg-tr" id="vcpMsgTr">Hazır olduğunda konuşabilirsin.</div>
+      </div>
+
+      <div class="vcp-listen">
+        <div class="vcp-wave"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="vcp-listen-txt" id="vcpListenTxt">Dinliyorum... Konuşabilirsin</div>
+      </div>
+    </div>
+
+    <div class="vcp-bottom">
+      <button id="vcpStopBtn" class="vcp-stop" title="Konuşmayı bitir">
+        <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+      </button>
+      <div class="vcp-stop-hint">Konuşmayı bitirmek için butona bas</div>
     </div>
   </div>
 
@@ -1907,10 +2014,15 @@ async function askAI(text, voiceMode) {
     addMsg(cleanReply, 'ai');
     thinking.remove();
     teacherSpeech.textContent = cleanReply;
+    const voiceAvenText = document.getElementById('vcpMsgEn');
+    if (voiceAvenText) voiceAvenText.textContent = cleanReply;
     // Aven İngilizce öğretmeni: cevabı İngilizce telaffuzla oku (voiceLanguage tr olsa bile İngilizce kelimeler doğru okunsun)
     // Tam sesli sohbet: Aven cevabi bitince (onDone), sesli mod hala aktifse otomatik tekrar dinlemeye basla
     const vol = (localStorage.getItem('ingilizce-ogretmeni-voice-lang') || 'tr-TR') === 'en-US';
+    const vcp = document.getElementById('voiceChatPanel');
+    if (vcp && !vcp.hidden) vcp.classList.add('robot-talking');
     window.ogretmenAPI.speak(cleanReply, 'en-US', () => {
+      if (vcp && !vcp.hidden) vcp.classList.remove('robot-talking');
       if (isListening) {
         const _c = window.Capacitor;
         const _n = _c && _c.isNativePlatform && _c.isNativePlatform();
@@ -1927,18 +2039,34 @@ async function askAI(text, voiceMode) {
 // ---------------------------------------------------------------
 // 5. Sesli konuşma (mikrofon)
 // ---------------------------------------------------------------
+// Sesli konuşma ekranını aç/kapat
+function openVoiceChat() {
+  const vcp = document.getElementById('voiceChatPanel');
+  const chat = document.getElementById('chatPanel');
+  if (vcp) vcp.hidden = false;
+  if (chat) chat.hidden = true;
+}
+function closeVoiceChat() {
+  const vcp = document.getElementById('voiceChatPanel');
+  const chat = document.getElementById('chatPanel');
+  if (vcp) { vcp.hidden = true; }
+  if (chat) chat.hidden = false;
+}
+
 async function toggleListening() {
   const cap = window.Capacitor;
   const isNative = cap && cap.isNativePlatform && cap.isNativePlatform();
   if (isNative) {
     // Android/iOS: native SpeechRecognition (getUserMedia WebView'da calismaz)
     if (isListening) { await _stopVoice(); return; }
+    openVoiceChat();
     try {
       await _startNativeVoice();
     } catch (e) { alert(uiText('micPermissionMsg')); }
     return;
   }
   if (isListening) { await _stopVoice(); return; }
+  openVoiceChat();
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     _startVoice(stream);
@@ -1982,6 +2110,7 @@ async function _stopVoice() {
       if (SR && SR.stop) { await SR.stop(); }
     } catch (e) {}
     nvPartialText = '';
+    closeVoiceChat();
     return;
   }
   if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
@@ -1989,6 +2118,7 @@ async function _stopVoice() {
   micBtn.textContent = uiText('micBtnStart');
   micBtn.classList.remove('listening');
   if (voiceStream) { voiceStream.getTracks().forEach(t => t.stop()); voiceStream = null; }
+  closeVoiceChat();
 }
 
 // Android/iOS: native SpeechRecognition ile KESINTISIZ sesli sohbet.
@@ -2187,6 +2317,10 @@ chatInput.addEventListener('keydown', e => {
   }
 });
 micBtn.addEventListener('click', toggleListening);
+const vcpStopBtn = document.getElementById('vcpStopBtn');
+if (vcpStopBtn) vcpStopBtn.addEventListener('click', async () => { try { await _stopVoice(); } catch (e) {} });
+const vcpCloseBtn = document.getElementById('vcpCloseBtn');
+if (vcpCloseBtn) vcpCloseBtn.addEventListener('click', async () => { try { await _stopVoice(); } catch (e) {} });
 
 // Ses hızı/tonu ayarı
 const voiceSetBtn = document.getElementById('voiceSetBtn');
